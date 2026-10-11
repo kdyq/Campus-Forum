@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>同窗 · 方向C 剪报 · 帖子详情</title>
+<link rel="stylesheet" href="assets/tabler-icons.css">
+<style>
+/* ============================================================
+   方向 C「剪报」 帖子详情
+   与首页共用令牌，浅色单主题锁定
+   正文走报刊双栏；讨论区按「读者来信」处理，无卡片、发丝线分隔
+   ============================================================ */
+:root{
+  --paper:#FAFAF9; --paper-2:#F1F1EF;
+  --ink:#17171A; --ink-2:#5C5C63; --ink-3:#6F6F76;
+  --rule:#DCDCD8; --rule-mid:#B9B9B3; --rule-hard:#17171A;
+  --accent:#C4442C; --accent-soft:#F6E7E3;
+  --r:2px;
+  --sans:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","DengXian","Noto Sans SC",-apple-system,sans-serif;
+  --serif:"Songti SC","STSong","华文宋体","Source Han Serif SC","Noto Serif SC",SimSun,serif;
+  --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Consolas,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.75}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.ti{vertical-align:-.125em}
+
+.masthead{border-bottom:2px solid var(--rule-hard);background:var(--paper)}
+.masthead-in{max-width:1240px;margin:0 auto;padding:16px 30px 13px;display:flex;align-items:baseline;gap:20px}
+.mast-name{font-family:var(--serif);font-size:27px;font-weight:700;letter-spacing:.06em;line-height:1}
+.mast-tag{font-size:12px;color:var(--ink-3);letter-spacing:.12em}
+.mast-date{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.navrow{border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:40;background:rgba(250,250,249,.94);
+  backdrop-filter:blur(10px)}
+.navrow-in{max-width:1240px;margin:0 auto;padding:0 30px;display:flex;align-items:center;gap:24px}
+.nlink{display:block;padding:12px 0;font-size:14px;color:var(--ink-2);position:relative;transition:color .18s var(--ease)}
+.nlink:hover{color:var(--ink)}
+.nlink.on{color:var(--ink);font-weight:600}
+.nlink.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--accent)}
+.navrow-in .sp{flex:1}
+.btn-post{height:31px;padding:0 13px;border-radius:var(--r);background:var(--ink);color:var(--paper);
+  font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:6px;
+  transition:transform .18s var(--ease),background .18s var(--ease)}
+.btn-post:hover{background:#000}
+.btn-post:active{transform:translateY(1px)}
+
+.shell{max-width:1240px;margin:0 auto;padding:26px 30px 56px;
+  display:grid;grid-template-columns:minmax(0,1fr) 262px;gap:0;align-items:start}
+.article{padding-right:34px;border-right:1px solid var(--rule)}
+.rail{padding-left:30px}
+
+/* 文章头 */
+.crumb{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-3);margin-bottom:14px;letter-spacing:.02em}
+.crumb:hover{color:var(--ink-2)}
+.crumb i{font-size:14px}
+.kicker{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.14em;color:var(--accent);margin-bottom:11px}
+h1{font-family:var(--serif);font-size:36px;line-height:1.3;font-weight:700;letter-spacing:.005em;margin-bottom:13px}
+.deck{font-size:15px;line-height:1.78;color:var(--ink-2);max-width:54ch;padding-left:14px;
+  border-left:2px solid var(--accent);margin-bottom:20px}
+.byline{border-top:1px solid var(--rule-hard);border-bottom:1px solid var(--rule);padding:11px 0;
+  display:flex;align-items:center;gap:15px;flex-wrap:wrap;font-size:12.4px;color:var(--ink-2)}
+.byline .au{font-weight:600;color:var(--ink)}
+.byline .st{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11.4px;color:var(--ink-3)}
+.byline .st i{font-size:14px;font-family:var(--sans)}
+.byline .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:4px;height:21px;padding:0 8px;font-size:11.4px;font-weight:500;
+  border:1px solid var(--rule-mid);border-radius:var(--r);color:var(--ink-2)}
+.chip i{font-size:13px}
+.chip-solved{border-color:#8FB79C;color:#2C6B43;background:#EDF5EF}
+.chip-acc{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+/* 正文双栏 */
+.body-cols{column-count:2;column-gap:32px;column-rule:1px solid var(--rule);
+  font-size:15px;line-height:1.92;color:#25252B;margin:20px 0 0}
+.body-cols p{margin-bottom:14px;break-inside:avoid}
+.body-cols ol{list-style:none;counter-reset:q;margin:0 0 14px;padding:0;break-inside:avoid}
+.body-cols li{position:relative;padding-left:23px;margin-bottom:8px;counter-increment:q}
+.body-cols li::before{content:counter(q);position:absolute;left:0;top:.1em;font-family:var(--mono);
+  font-size:11.5px;color:var(--accent);font-weight:600;line-height:1.9}
+
+/* 采纳答案：拉引块 */
+.accepted{margin-top:26px;border-top:2px solid var(--rule-hard);padding-top:0}
+.acc-label{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+  letter-spacing:.14em;color:var(--paper);background:var(--accent);padding:4px 10px;border-radius:var(--r)}
+.pullquote{font-family:var(--serif);font-size:25px;line-height:1.5;font-weight:700;
+  margin:18px 0 16px;padding-left:18px;border-left:3px solid var(--accent);max-width:44ch}
+.acc-by{display:flex;align-items:center;gap:10px;padding-bottom:13px;border-bottom:1px solid var(--rule);
+  font-size:12.6px;color:var(--ink-2)}
+.acc-av{width:26px;height:26px;flex:none;display:grid;place-items:center;font-size:12px;
+  font-weight:600;color:var(--paper);background:var(--ink-2)}
+.acc-nm{font-weight:600;color:var(--ink)}
+.acc-xl{margin-left:auto;font-family:var(--mono);font-size:11.4px;color:var(--ink-3)}
+.acc-cols{column-count:2;column-gap:32px;column-rule:1px solid var(--rule);
+  font-size:14.6px;line-height:1.9;color:#2A2A30;margin-top:16px}
+.acc-cols p{margin-bottom:12px;break-inside:avoid}
+.acc-cols strong{font-weight:600;color:var(--ink)}
+/* 楼中楼：报刊式边注 */
+.margin-note{margin-top:16px;border-top:1px solid var(--rule);padding-top:13px}
+.mn{display:flex;gap:12px;padding:9px 0}
+.mn + .mn{border-top:1px solid var(--rule)}
+.mn-rule{width:2px;background:var(--rule-mid);flex:none}
+.mn-h{font-size:12.4px;margin-bottom:3px}
+.mn-h b{color:var(--accent);font-weight:600}
+.mn-nm{font-weight:600}
+.mn-t{font-size:13.4px;line-height:1.78;color:var(--ink-2);max-width:62ch}
+.mn-more{margin-top:11px;font-size:12.4px;color:var(--accent);font-weight:600;display:flex;align-items:center;gap:5px}
+
+/* 讨论区：读者来信 */
+.disc-head{display:flex;align-items:baseline;gap:14px;border-top:2px solid var(--rule-hard);
+  padding-top:11px;margin-top:32px}
+.disc-head h2{font-family:var(--serif);font-size:20px;font-weight:700;letter-spacing:.05em}
+.disc-head .n{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.letter{padding:17px 0;border-bottom:1px solid var(--rule)}
+.letter-h{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.letter-av{width:26px;height:26px;flex:none;display:grid;place-items:center;font-size:12px;
+  font-weight:600;color:var(--paper);background:var(--ink-2)}
+.letter-nm{font-size:13.6px;font-weight:600}
+.letter-bd{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:500;
+  color:var(--accent);border:1px solid var(--accent);padding:0 6px;border-radius:var(--r)}
+.letter-bd i{font-size:12px}
+.letter-xl{margin-left:auto;font-family:var(--mono);font-size:11.4px;color:var(--ink-3)}
+.letter-b{max-width:65ch;font-size:14.4px;line-height:1.88;color:#2A2A30}
+.letter-b p{margin-bottom:11px}
+.letter-b p:last-child{margin-bottom:0}
+.letter-b strong{font-weight:600;color:var(--ink)}
+.letter-b pre{background:var(--paper-2);border:1px solid var(--rule);border-left:2px solid var(--rule-mid);
+  padding:12px 14px;overflow-x:auto;margin:0 0 11px}
+.letter-b pre code{font-family:var(--mono);font-size:12.4px;line-height:1.7;color:#3A3A42}
+.letter-b code{font-family:var(--mono);font-size:12.4px;background:var(--paper-2);padding:2px 5px;
+  border:1px solid var(--rule);color:var(--accent)}
+.letter-m{display:flex;align-items:center;gap:16px;margin-top:10px;font-size:12.3px;color:var(--ink-3)}
+.letter-m button{display:flex;align-items:center;gap:5px;transition:color .18s var(--ease)}
+.letter-m button:hover{color:var(--accent)}
+.letter-m i{font-size:14.5px}
+.letter-m .n{font-family:var(--mono);font-size:11.6px}
+
+/* 撰稿框 */
+.composer{margin-top:22px;border:1px solid var(--rule-mid);background:var(--paper-2);padding:15px 17px}
+.composer-h{font-family:var(--serif);font-size:15px;font-weight:700;letter-spacing:.04em;margin-bottom:9px}
+.composer-in{min-height:54px;color:var(--ink-3);font-size:13.8px;line-height:1.8;
+  border-bottom:1px solid var(--rule);padding-bottom:11px}
+.composer-bar{display:flex;align-items:center;gap:12px;margin-top:11px;color:var(--ink-3);font-size:17px}
+.composer-bar .sp{flex:1}
+.composer-bar .hint{font-size:11.6px;font-family:var(--mono)}
+.btn-sm{height:32px;padding:0 15px;border-radius:var(--r);background:var(--ink);color:var(--paper);
+  font-size:13px;font-weight:500;transition:transform .18s var(--ease),background .18s var(--ease)}
+.btn-sm:hover{background:#000}
+.btn-sm:active{transform:translateY(1px)}
+
+/* 右栏 */
+.rail-h{font-family:var(--serif);font-size:16px;font-weight:700;letter-spacing:.06em;
+  border-top:2px solid var(--rule-hard);padding-top:10px;margin-bottom:2px}
+.coursecard{border:1px solid var(--rule-mid);padding:14px 15px;background:var(--paper-2);margin-top:16px}
+.coursecard .cc-k{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.06em}
+.coursecard .cc-n{font-family:var(--serif);font-size:19px;font-weight:700;margin-top:5px;letter-spacing:.03em}
+.coursecard .cc-r{display:flex;justify-content:space-between;font-size:12.4px;color:var(--ink-2);
+  padding:6px 0;border-top:1px solid var(--rule)}
+.coursecard .cc-r:first-of-type{margin-top:10px}
+.coursecard .cc-r b{font-family:var(--mono);color:var(--ink);font-weight:600}
+.simlist{margin-top:4px}
+.sim{display:block;padding:12px 0;border-bottom:1px solid var(--rule);transition:color .18s var(--ease)}
+.sim:hover .sim-t{color:var(--accent)}
+.sim-t{font-family:var(--serif);font-size:15.4px;line-height:1.5;font-weight:700;display:block}
+.sim-s{font-size:11.2px;color:var(--ink-3);margin-top:4px;font-family:var(--mono)}
+.mode-note{margin-top:18px;font-size:11.8px;color:var(--ink-3);line-height:1.7;
+  border-top:1px solid var(--rule);padding-top:11px}
+.mode-note b{color:var(--ink);font-weight:600}
+
+.foot{border-top:2px solid var(--rule-hard)}
+.foot-in{max-width:1240px;margin:0 auto;padding:15px 30px 32px;display:flex;gap:20px;flex-wrap:wrap;
+  font-size:12.2px;color:var(--ink-3)}
+
+@media (max-width:1080px){
+  .shell{grid-template-columns:minmax(0,1fr) 226px}
+  .article{padding-right:26px}
+  h1{font-size:30px}
+}
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr;padding:20px 18px 42px}
+  .article{padding-right:0;border-right:none}
+  .rail{padding-left:0;margin-top:32px}
+  h1{font-size:25px}
+  .body-cols,.acc-cols{column-count:1;column-rule:none}
+  .pullquote{font-size:20px}
+  .masthead-in{padding:14px 18px 11px}
+  .navrow-in{padding:0 18px;gap:16px}
+  .foot-in{padding:13px 18px 26px}
+}
+@media (max-width:640px){.mast-date{display:none}.nlink:nth-child(n+5){display:none}}
+
+.js-anim .article>*,.js-anim .rail>*{opacity:0}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div class="mast-name">同窗</div>
+    <div class="mast-tag">校园话题社区</div>
+    <div class="mast-date">2026 年 10 月 9 日</div>
+  </div>
+</header>
+
+<nav class="navrow">
+  <div class="navrow-in">
+    <a class="nlink" href="#">首页</a>
+    <a class="nlink on" href="#">课程</a>
+    <a class="nlink" href="#">求助</a>
+    <a class="nlink" href="#">校园生活</a>
+    <a class="nlink" href="#">社团</a>
+    <a class="nlink" href="#">二手</a>
+    <a class="nlink" href="#">树洞</a>
+    <span class="sp"></span>
+    <button class="btn-post"><i class="ti ti-pencil"></i>发帖</button>
+  </div>
+</nav>
+
+<main class="shell">
+  <article class="article">
+    <button class="crumb"><i class="ti ti-arrow-left"></i>课程 / 机器学习 / 选课咨询</button>
+
+    <span class="kicker">课程 · 选课咨询</span>
+    <h1>有人选过机器学习这门课吗？作业量怎么样</h1>
+    <p class="deck">想确认能否与另外两门专业课同时选。以下回复已由提问者整理，并标记了一条已采纳的回答。</p>
+
+    <div class="byline">
+      <span class="au">林晓萌</span>
+      <span>计算机学院 2023 级</span>
+      <span>3 小时前</span>
+      <span class="st"><i class="ti ti-message-circle"></i>38</span>
+      <span class="st"><i class="ti ti-heart"></i>96</span>
+      <span class="st"><i class="ti ti-eye"></i>1,247</span>
+      <span class="sp"></span>
+      <span class="chip chip-solved"><i class="ti ti-circle-check"></i>已解决</span>
+      <span class="chip"><i class="ti ti-messages"></i>求助</span>
+    </div>
+
+    <div class="body-cols">
+      <p>下学期选课想选这门课，但看往年的评价说法差得挺多的。想在这里问一下选过的同学几个具体的问题。</p>
+      <ol>
+        <li>平时作业一共几次，每次大概要投入多少小时</li>
+        <li>期末考试还是大作业，如果是大作业能不能组队</li>
+        <li>需不需要先修概率论和线代，我线代只拿了 78 分</li>
+        <li>最后给分情况怎么样</li>
+      </ol>
+      <p>主要是想确认能不能和另外两门专业课同时扛下来，谢谢。</p>
+    </div>
+
+    <!-- 已采纳回答 -->
+    <section class="accepted">
+      <span class="acc-label">已采纳的回答</span>
+      <p class="pullquote">作业一共 5 次，前两次每次三四个小时；从第三次开始要求手推梯度，我那次花了将近八个小时。</p>
+      <div class="acc-by">
+        <span class="acc-av">周</span>
+        <span class="acc-nm">周予安</span>
+        <span>上学期选课，计算机学院</span>
+        <span class="acc-xl">2 小时前 · 142 人赞同</span>
+      </div>
+      <div class="acc-cols">
+        <p>我上学期刚选完，逐条回答你的问题。</p>
+        <p><strong>作业共五次。</strong>前两次偏实现，每次三四个小时能搞定。第三次开始要求手推，包括反向传播和 softmax 的梯度，我那次花了差不多八小时。后面两次是复现论文里的小实验，比较看运气，选题好的话不费劲。</p>
+        <p><strong>期末是开卷考试加一个大作业</strong>，大作业可以两人组队，占三成。考试不难但题量偏大，最后一题是设计题，写思路就行。</p>
+        <p><strong>线代 78 分够用。</strong>不过矩阵求导和特征值那两块最好提前过一遍，课上不会单独讲。概率论用到的比想象中少，主要涉及贝叶斯那一章。</p>
+        <p><strong>给分比较正常。</strong>我们那届平均分在 82 上下，认真做完作业一般不会低。和另外两门专业课一起选的话，我是同期选了操作系统和编译原理，能扛，但那两个月基本没有周末。</p>
+      </div>
+      <div class="margin-note">
+        <div class="mn">
+          <div class="mn-rule"></div>
+          <div>
+            <div class="mn-h"><span class="mn-nm">林晓萌</span> 回复 <b>周予安</b></div>
+            <div class="mn-t">请问第三次作业的推导需要自己补数学吗，还是课上会带着讲一遍</div>
+          </div>
+        </div>
+        <div class="mn">
+          <div class="mn-rule"></div>
+          <div>
+            <div class="mn-h"><span class="mn-nm">周予安</span> 回复 <b>林晓萌</b></div>
+            <div class="mn-t">课上只讲结论，推导要自己补。助教每周有一小时答疑，那节课建议都去。</div>
+          </div>
+        </div>
+        <div class="mn">
+          <div class="mn-rule"></div>
+          <div>
+            <div class="mn-h"><span class="mn-nm">何砚清</span> 回复 <b>周予安</b></div>
+            <div class="mn-t">补充一点，大作业的选题如果在往届范围里挑，能省不少时间。我把去年的题目整理在另一个帖子里了。</div>
+          </div>
+        </div>
+        <button class="mn-more"><i class="ti ti-chevron-down"></i>展开其余 4 条回复</button>
+      </div>
+    </section>
+
+    <!-- 讨论区 -->
+    <div class="disc-head">
+      <h2>讨论</h2>
+      <span class="n">38 条</span>
+    </div>
+
+    <article class="letter">
+      <div class="letter-h">
+        <span class="letter-av">陈</span>
+        <span class="letter-nm">陈子昂</span>
+        <span class="letter-xl">1 小时前</span>
+      </div>
+      <div class="letter-b">
+        <p>我室友选了，说前三次作业是断崖式难度，第三次直接卡了两天。他贴给我看过一道题，大概是这种形式：</p>
+        <pre><code># 要求手写实现 softmax 的反向传播，不许调用自动求导
+def backward(dout: np.ndarray) -> np.ndarray:
+    # dout: 上游梯度, shape = (N, C)
+    # TODO: 返回 dX, 以及 dW / db
+    ...</code></pre>
+        <p>结论是数学底子不牢的话，要么提前补，要么别选。</p>
+      </div>
+      <div class="letter-m">
+        <button><i class="ti ti-heart"></i><span class="n">63</span> 赞同</button>
+        <button><i class="ti ti-message-circle"></i>回复</button>
+        <button><i class="ti ti-bookmark"></i>收藏</button>
+      </div>
+    </article>
+
+    <article class="letter">
+      <div class="letter-h">
+        <span class="letter-av">匿</span>
+        <span class="letter-nm">匿名用户</span>
+        <span class="letter-bd"><i class="ti ti-eye-off"></i>匿名</span>
+        <span class="letter-xl">46 分钟前</span>
+      </div>
+      <div class="letter-b">
+        <p>提醒一下，这门课两个老师风格差挺大。选之前最好看一下开课教师，另一个班作业是纯编程，没有手推的部分。</p>
+      </div>
+      <div class="letter-m">
+        <button><i class="ti ti-heart"></i><span class="n">88</span> 赞同</button>
+        <button><i class="ti ti-message-circle"></i>回复</button>
+        <button><i class="ti ti-bookmark"></i>收藏</button>
+      </div>
+      <div class="margin-note">
+        <div class="mn">
+          <div class="mn-rule"></div>
+          <div>
+            <div class="mn-h"><span class="mn-nm">林晓萌</span> 回复 <b>匿名用户</b></div>
+            <div class="mn-t">请问方便说下是哪位老师吗</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <div class="composer">
+      <div class="composer-h">写下你的看法</div>
+      <div class="composer-in">支持 Markdown，可粘贴图片；登录后也可选择匿名发布</div>
+      <div class="composer-bar">
+        <i class="ti ti-photo"></i><i class="ti ti-code"></i><i class="ti ti-mood-smile"></i>
+        <span class="sp"></span>
+        <span class="hint">登录取匿名</span>
+        <button class="btn-sm">发布</button>
+      </div>
+    </div>
+  </article>
+
+  <aside class="rail">
+    <div class="rail-h">关联课程</div>
+    <div class="coursecard">
+      <div class="cc-k">CS 3012</div>
+      <div class="cc-n">机器学习</div>
+      <div class="cc-r"><span>本课讨论</span><b>86</b></div>
+      <div class="cc-r"><span>推荐度</span><b>4.2 / 5</b></div>
+      <div class="cc-r"><span>平均作业</span><b>6.5 h</b></div>
+      <div class="cc-r"><span>给分中位数</span><b>82</b></div>
+    </div>
+
+    <div class="rail-h" style="margin-top:24px">同课程其他讨论</div>
+    <div class="simlist">
+      <a class="sim" href="#">
+        <span class="sim-t">机器学习大作业选题清单（往届整理）</span>
+        <span class="sim-s">62 回复 · 3 天前</span>
+      </a>
+      <a class="sim" href="#">
+        <span class="sim-t">两个老师的考核方式有什么区别</span>
+        <span class="sim-s">31 回复 · 5 天前</span>
+      </a>
+      <a class="sim" href="#">
+        <span class="sim-t">没学过概率论能直接上吗</span>
+        <span class="sim-s">27 回复 · 1 周前</span>
+      </a>
+      <a class="sim" href="#">
+        <span class="sim-t">期末开卷考试能带打印的笔记吗</span>
+        <span class="sim-s">14 回复 · 1 周前</span>
+      </a>
+    </div>
+
+    <p class="mode-note">当前为<b>浅色单主题</b>。采纳回答以拉引句加朱红标识呈现，讨论区按读者来信排布，不用卡片。</p>
+  </aside>
+</main>
+
+<footer class="foot">
+  <div class="foot-in">
+    <span>同窗 · 校园话题社区</span>
+    <span>仅限在校师生</span>
+    <span>社区规范</span>
+    <span>意见反馈</span>
+  </div>
+</footer>
+
+<script src="assets/gsap.min.js"></script>
+<script>
+/* 动效动机：与首页一致，仅做整体展开，不逐条 stagger，保持报刊的静态气质 */
+const mm = gsap.matchMedia();
+mm.add({
+  motion: "(prefers-reduced-motion: no-preference)",
+  still:  "(prefers-reduced-motion: reduce)"
+}, (ctx) => {
+  const { motion } = ctx.conditions;
+  document.documentElement.classList.add('js-anim');
+  if (!motion) {
+    gsap.set('.article > *, .rail > *', { opacity: 1 });
+    document.documentElement.classList.remove('js-anim');
+    return;
+  }
+  const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+  tl.fromTo('.masthead-in', { autoAlpha: 0 }, { autoAlpha: 1, duration: .45 })
+    .fromTo('.article > *', { autoAlpha: 0, y: 10 },
+      { autoAlpha: 1, y: 0, duration: .45, stagger: .07 }, '-=.25')
+    .fromTo('.rail > *', { autoAlpha: 0, y: 8 },
+      { autoAlpha: 1, y: 0, duration: .45, stagger: .07 }, '-=.5');
+  return () => document.documentElement.classList.remove('js-anim');
+});
+</script>
+</body>
+</html>

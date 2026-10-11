@@ -1,0 +1,20 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+*.tsbuildinfo
+
+# 环境变量与密钥（绝不提交）
+.env
+.env.*
+!.env.example
+
+# 用户上传内容（运行时产生）
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# 日志与系统文件
+*.log
+.DS_Store
+Thumbs.db

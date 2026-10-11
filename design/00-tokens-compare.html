@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>同窗 · 三个设计方向令牌对比</title>
+<link rel="stylesheet" href="assets/tabler-icons.css">
+<style>
+/* 对比页自身使用中性框架，三个方向各自用本方向的真实令牌渲染 */
+:root{
+  --sans:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","DengXian","Noto Sans SC",-apple-system,sans-serif;
+  --serif:"Songti SC","STSong","华文宋体","Source Han Serif SC",SimSun,serif;
+  --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{background:#E9E9E7;color:#17171A;font-family:var(--sans);font-size:14px;line-height:1.7}
+.ti{vertical-align:-.125em}
+.wrap{max-width:1400px;margin:0 auto;padding:34px 30px 60px}
+.page-h{border-bottom:3px double #17171A;padding-bottom:16px;margin-bottom:26px;display:flex;align-items:flex-end;gap:24px}
+.page-h h1{font-family:var(--serif);font-size:31px;font-weight:700;letter-spacing:.04em;line-height:1}
+.page-h .sub{font-size:13px;color:#5C5C63;padding-bottom:3px}
+.page-h .note{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:#8E8E96;padding-bottom:3px}
+
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;align-items:start}
+
+/* 每个方向的容器用本方向令牌 */
+.d{padding:22px 22px 24px;border-radius:var(--d-r);background:var(--d-bg);border:1px solid var(--d-line)}
+.d *{border-color:var(--d-line)}
+
+.d-head{display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:1px solid var(--d-line);margin-bottom:16px}
+.d-mark{width:30px;height:30px;flex:none;border-radius:var(--d-mk);display:grid;place-items:center;
+  font-size:14px;font-weight:700;background:var(--d-accent);color:var(--d-accent-on)}
+.d-code{font-family:var(--mono);font-size:11px;color:var(--d-ink3);letter-spacing:.08em}
+.d-name{font-size:19px;font-weight:700;color:var(--d-ink);line-height:1.35;
+  font-family:var(--d-headfont)}
+
+.dials{display:flex;gap:14px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--d-line)}
+.dial{flex:1}
+.dial-l{font-size:10.5px;letter-spacing:.08em;color:var(--d-ink3);font-family:var(--mono);margin-bottom:5px}
+.dial-v{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--d-accent);line-height:1}
+.dial-bar{height:3px;margin-top:6px;background:var(--d-line)}
+.dial-fill{height:100%;background:var(--d-accent);opacity:.75}
+
+.row-l{font-size:11px;letter-spacing:.1em;color:var(--d-ink3);font-family:var(--mono);margin:18px 0 8px}
+.row-l:first-of-type{margin-top:0}
+
+.sw{display:flex;flex-direction:column;gap:1px}
+.sw-i{display:flex;align-items:center;gap:11px;padding:6px 0}
+.sw-c{width:30px;height:30px;flex:none;border-radius:var(--d-sw);border:1px solid var(--d-line);position:relative}
+.sw-t{min-width:0}
+.sw-n{font-size:12.4px;color:var(--d-ink);font-weight:500;line-height:1.4}
+.sw-v{font-family:var(--mono);font-size:10.8px;color:var(--d-ink3);line-height:1.4}
+.sw-note{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--d-ink3);text-align:right}
+
+.ts{display:flex;flex-direction:column;gap:9px}
+.ts-i{display:flex;align-items:baseline;gap:11px;padding-bottom:9px;border-bottom:1px solid var(--d-line)}
+.ts-i:last-child{border-bottom:none;padding-bottom:0}
+.ts-k{font-family:var(--mono);font-size:10.5px;color:var(--d-ink3);width:74px;flex:none;line-height:1.5}
+.ts-s{color:var(--d-ink);min-width:0}
+.ts-m{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--d-ink3);white-space:nowrap}
+
+.spec{font-size:12.6px;color:var(--d-ink2);line-height:1.75}
+.spec b{color:var(--d-ink);font-weight:600}
+.spec-item{display:flex;gap:11px;padding:7px 0;border-bottom:1px solid var(--d-line)}
+.spec-item:last-child{border-bottom:none}
+.spec-item i{font-size:16px;color:var(--d-accent);flex:none;line-height:1.5}
+.spec-item .txt{min-width:0}
+
+.swatch-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:8px;border:1px solid var(--d-line)}
+.swatch-strip div{height:34px;display:grid;place-items:end center;padding-bottom:3px;
+  font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.85)}
+
+.verdict{margin-top:20px;padding-top:14px;border-top:2px solid var(--d-accent)}
+.verdict-l{font-size:11px;letter-spacing:.1em;color:var(--d-accent);font-family:var(--mono);margin-bottom:6px}
+.verdict-t{font-size:13.2px;color:var(--d-ink2);line-height:1.78}
+.verdict-t b{color:var(--d-ink)}
+
+/* ---- 方向 A 令牌 ---- */
+#dA{--d-bg:#0E1013;--d-surface:#15181D;--d-surface2:#1C2027;--d-line:#262B33;
+  --d-ink:#E8EAED;--d-ink2:#9BA3AE;--d-ink3:#8A94A2;
+  --d-accent:#D8A24C;--d-accent-on:#1A1408;--d-r:10px;--d-mk:7px;--d-sw:4px;
+  --d-headfont:var(--sans)}
+/* ---- 方向 B 令牌 ---- */
+#dB{--d-bg:#F4F6F8;--d-surface:#FFFFFF;--d-surface2:#EDF1F4;--d-line:#E3E7EB;
+  --d-ink:#141A21;--d-ink2:#5A6570;--d-ink3:#6A7480;
+  --d-accent:#1F6F78;--d-accent-on:#FFFFFF;--d-r:12px;--d-mk:7px;--d-sw:6px;
+  --d-headfont:var(--sans)}
+/* ---- 方向 C 令牌 ---- */
+#dC{--d-bg:#FAFAF9;--d-surface:#F1F1EF;--d-surface2:#EDEDEA;--d-line:#DCDCD8;
+  --d-ink:#17171A;--d-ink2:#5C5C63;--d-ink3:#6F6F76;
+  --d-accent:#C4442C;--d-accent-on:#FAFAF9;--d-r:2px;--d-mk:1px;--d-sw:0px;
+  --d-headfont:var(--serif)}
+
+/* 顶部汇总表 */
+.summary{background:#fff;border:1px solid #D5D5D1;border-radius:4px;padding:20px 22px;margin-bottom:26px}
+.summary table{width:100%;border-collapse:collapse;font-size:13px}
+.summary th,.summary td{text-align:left;padding:9px 12px;border-bottom:1px solid #E7E7E3;vertical-align:top}
+.summary th{font-size:11px;letter-spacing:.09em;color:#8E8E96;font-weight:600;font-family:var(--mono)}
+.summary th:first-child,.summary td:first-child{width:118px;color:#5C5C63;font-size:12.4px}
+.summary tr:last-child td{border-bottom:none}
+.summary td{color:#17171A;line-height:1.7}
+.summary .mono{font-family:var(--mono);font-size:12px}
+.dotA{color:#D8A24C;font-weight:600}
+.dotB{color:#1F6F78;font-weight:600}
+.dotC{color:#C4442C;font-weight:600}
+
+@media (max-width:1180px){.cols{grid-template-columns:1fr}.d{max-width:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="page-h">
+    <h1>同窗 · 设计方向对比</h1>
+    <div class="sub">三个候选方向的完整设计令牌，用于横向比较</div>
+    <div class="note">2026-10-09</div>
+  </div>
+
+  <div class="summary">
+    <table>
+      <thead>
+        <tr><th></th><th>方向 A · 晚自习</th><th>方向 B · 公告栏</th><th>方向 C · 剪报</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>气质</td>
+          <td>安静、专注，适合长时间阅读</td>
+          <td>规整、紧凑，适合快速扫读</td>
+          <td>有主张、有刊物感，适合沉淀内容</td>
+        </tr>
+        <tr>
+          <td>版式</td>
+          <td>顶栏 + 板块横条 + 单栏流 + 右侧吸顶栏</td>
+          <td>顶栏 + 左板块树 + 中帖子流 + 右热榜</td>
+          <td>报头 + 头条 + 双栏条目，右栏极简</td>
+        </tr>
+        <tr>
+          <td>主题</td>
+          <td>深色单主题</td>
+          <td>浅色单主题</td>
+          <td>浅色单主题</td>
+        </tr>
+        <tr>
+          <td>强调色</td>
+          <td><span class="dotA">#D8A24C 暖琥珀</span> <span class="mono">饱和度 65%</span></td>
+          <td><span class="dotB">#1F6F78 深青</span> <span class="mono">饱和度 74%</span></td>
+          <td><span class="dotC">#C4442C 印刷朱红</span> <span class="mono">饱和度 78%</span></td>
+        </tr>
+        <tr>
+          <td>圆角体系</td>
+          <td class="mono">卡片 10px / 控件 8px / 头像全圆</td>
+          <td class="mono">卡片 12px / 控件 8px / 胶囊全圆</td>
+          <td class="mono">全局 0，控件 2px</td>
+        </tr>
+        <tr>
+          <td>信息密度</td>
+          <td class="mono">6 / 10</td>
+          <td class="mono">7 / 10</td>
+          <td class="mono">4 / 10</td>
+        </tr>
+        <tr>
+          <td>动效强度</td>
+          <td class="mono">5 / 10　列表进列 stagger</td>
+          <td class="mono">4 / 10　面板依次落位</td>
+          <td class="mono">3 / 10　仅整体展开</td>
+        </tr>
+        <tr>
+          <td>标题字体</td>
+          <td>黑体，字重 600</td>
+          <td>黑体，字重 600</td>
+          <td><b>宋体</b>，字重 700（中文报刊传统）</td>
+        </tr>
+        <tr>
+          <td>适合谁</td>
+          <td>用户以夜间刷帖为主；想显得沉稳</td>
+          <td>用户习惯信息流产品；想尽快上手</td>
+          <td>想让社区有辨识度；愿意接受稍低密度</td>
+        </tr>
+        <tr>
+          <td>主要代价</td>
+          <td>深色下图片与头像需要单独调亮度</td>
+          <td>三栏在窄屏上要降级为单栏</td>
+          <td>0 圆角对部分用户偏冷硬；宋体需回退</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cols">
+
+    <!-- 方向 A -->
+    <section class="d" id="dA">
+      <div class="d-head">
+        <span class="d-mark">A</span>
+        <span>
+          <span class="d-code">DARK FOCUS</span>
+          <div class="d-name">晚自习</div>
+        </span>
+      </div>
+
+      <div class="dials">
+        <div class="dial"><div class="dial-l">VARIANCE</div><div class="dial-v">4</div>
+          <div class="dial-bar"><div class="dial-fill" style="width:40%"></div></div></div>
+        <div class="dial"><div class="dial-l">MOTION</div><div class="dial-v">5</div>
+          <div class="dial-bar"><div class="dial-fill" style="width:50%"></div></div></div>
+        <div class="dial"><div class="dial-l">DENSITY</div><div class="dial-v">6</div>
+          <div class="dial-bar"><div class="dial-fill" style="width:60%"></div></div></div>
+      </div>
+
+      <div class="row-l">色板</div>
+      <div class="sw">
+        <div class="sw-i"><span class="sw-c" style="background:#0E1013"></span>
+          <span class="sw-t"><span class="sw-n">页面底色</span><span class="sw-v">#0E1013</span></span>
+          <span class="sw-note">非纯黑</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#15181D"></span>
+          <span class="sw-t"><span class="sw-n">容器</span><span class="sw-v">#15181D</span></span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#1C2027"></span>
+          <span class="sw-t"><span class="sw-n">容器·浮起</span><span class="sw-v">#1C2027</span></span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#262B33"></span>
+          <span class="sw-t"><span class="sw-n">描边</span><span class="sw-v">#262B33</span></span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#E8EAED"></span>
+          <span class="sw-t"><span class="sw-n">正文</span><span class="sw-v">#E8EAED</span></span>
+          <span class="sw-note">对比 14.6:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#9BA3AE"></span>
+          <span class="sw-t"><span class="sw-n">次要</span><span class="sw-v">#9BA3AE</span></span>
+          <span class="sw-note">对比 6.7:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#8A94A2"></span>
+          <span class="sw-t"><span class="sw-n">三级</span><span class="sw-v">#8A94A2</span></span>
+          <span class="sw-note">对比 5.8:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#D8A24C"></span>
+          <span class="sw-t"><span class="sw-n">强调</span><span class="sw-v">#D8A24C</span></span>
+          <span class="sw-note">对比 7.7:1</span></div>
+      </div>
+
+      <div class="row-l">字阶</div>
+      <div class="ts">
+        <div class="ts-i"><span class="ts-k">帖子标题</span>
+          <span class="ts-s" style="font-size:16.5px;font-weight:600">机器学习这门课</span>
+          <span class="ts-m">16.5 / 600</span></div>
+        <div class="ts-i"><span class="ts-k">正文</span>
+          <span class="ts-s" style="font-size:15px">正文与评论</span>
+          <span class="ts-m">15 / 1.85</span></div>
+        <div class="ts-i"><span class="ts-k">摘要</span>
+          <span class="ts-s" style="font-size:13.6px">帖子摘要两行截断</span>
+          <span class="ts-m">13.6 / 1.75</span></div>
+        <div class="ts-i"><span class="ts-k">元数据</span>
+          <span class="ts-s" style="font-family:var(--mono);font-size:12.5px">1,247 阅</span>
+          <span class="ts-m">等宽 12.5</span></div>
+      </div>
+
+      <div class="row-l">圆角与动效</div>
+      <div class="spec">
+        <div class="spec-item"><i class="ti ti-square-rounded"></i>
+          <span class="txt">容器 10px、控件 8px、头像与徽标全圆。文档化规则，全站一致。</span></div>
+        <div class="spec-item"><i class="ti ti-wave-sine"></i>
+          <span class="txt">曲线 <b class="mono">cubic-bezier(.16,1,.3,1)</b>，仅动 <b>transform / opacity</b>。</span></div>
+        <div class="spec-item"><i class="ti ti-accessible"></i>
+          <span class="txt">全部动效包裹 <b>prefers-reduced-motion</b>，降级为静态直显。</span></div>
+      </div>
+
+      <div class="verdict">
+        <div class="verdict-l">选择它的理由</div>
+        <p class="verdict-t">如果你的用户主要在晚上刷帖，或者你希望社区看起来<b>安静、不喧闹</b>，选这个。深色下图片需要统一降饱和处理，否则会刺眼。</p>
+      </div>
+    </section>
+
+    <!-- 方向 B -->
+    <section class="d" id="dB">
+      <div class="d-head">
+        <span class="d-mark">B</span>
+        <span>
+          <span class="d-code">LIGHT BULLETIN</span>
+          <div class="d-name">公告栏</div>
+        </span>
+      </div>
+
+      <div class="dials">
+        <div class="dial"><div class="dial-l">VARIANCE</div><div class="dial-v">5</div>
+          <div class="dial-bar"><div class="dial-fill" style="width:50%"></div></div></div>
+        <div class="dial"><div class="dial-l">MOTION</div><div class="dial-v">4</div>
+          <div class="dial-bar"><div class="dial-fill" style="width:40%"></div></div></div>
+        <div class="dial"><div class="dial-l">DENSITY</div><div class="dial-v">7</div>
+          <div class="dial-bar"><div class="dial-fill" style="width:70%"></div></div></div>
+      </div>
+
+      <div class="row-l">色板</div>
+      <div class="sw">
+        <div class="sw-i"><span class="sw-c" style="background:#F4F6F8"></span>
+          <span class="sw-t"><span class="sw-n">页面底色</span><span class="sw-v">#F4F6F8</span></span>
+          <span class="sw-note">冷灰白</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#FFFFFF"></span>
+          <span class="sw-t"><span class="sw-n">容器</span><span class="sw-v">#FFFFFF</span></span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#EDF1F4"></span>
+          <span class="sw-t"><span class="sw-n">容器·浮起</span><span class="sw-v">#EDF1F4</span></span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#E3E7EB"></span>
+          <span class="sw-t"><span class="sw-n">描边</span><span class="sw-v">#E3E7EB</span></span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#141A21"></span>
+          <span class="sw-t"><span class="sw-n">正文</span><span class="sw-v">#141A21</span></span>
+          <span class="sw-note">对比 15.8:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#5A6570"></span>
+          <span class="sw-t"><span class="sw-n">次要</span><span class="sw-v">#5A6570</span></span>
+          <span class="sw-note">对比 6.1:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#6A7480"></span>
+          <span class="sw-t"><span class="sw-n">三级</span><span class="sw-v">#6A7480</span></span>
+          <span class="sw-note">对比 4.8:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#1F6F78"></span>
+          <span class="sw-t"><span class="sw-n">强调</span><span class="sw-v">#1F6F78</span></span>
+          <span class="sw-note">对比 5.9:1</span></div>
+      </div>
+
+      <div class="row-l">字阶</div>
+      <div class="ts">
+        <div class="ts-i"><span class="ts-k">帖子标题</span>
+          <span class="ts-s" style="font-size:16px;font-weight:600">机器学习这门课</span>
+          <span class="ts-m">16 / 600</span></div>
+        <div class="ts-i"><span class="ts-k">正文</span>
+          <span class="ts-s" style="font-size:15px">正文与评论</span>
+          <span class="ts-m">15 / 1.75</span></div>
+        <div class="ts-i"><span class="ts-k">摘要</span>
+          <span class="ts-s" style="font-size:13.4px">帖子摘要两行截断</span>
+          <span class="ts-m">13.4 / 1.72</span></div>
+        <div class="ts-i"><span class="ts-k">元数据</span>
+          <span class="ts-s" style="font-family:var(--mono);font-size:12.3px">1,247 阅</span>
+          <span class="ts-m">等宽 12.3</span></div>
+      </div>
+
+      <div class="row-l">圆角与动效</div>
+      <div class="spec">
+        <div class="spec-item"><i class="ti ti-square-rounded"></i>
+          <span class="txt">容器 12px、控件 8px、徽标与胶囊全圆。文档化规则，全站一致。</span></div>
+        <div class="spec-item"><i class="ti ti-wave-sine"></i>
+          <span class="txt">曲线 <b class="mono">cubic-bezier(.16,1,.3,1)</b>，面板自上而下依次落位。</span></div>
+        <div class="spec-item"><i class="ti ti-accessible"></i>
+          <span class="txt">全部动效包裹 <b>prefers-reduced-motion</b>，降级为静态直显。</span></div>
+      </div>
+
+      <div class="verdict">
+        <div class="verdict-l">选择它的理由</div>
+        <p class="verdict-t">如果你希望用户<b>零学习成本上手</b>，并且列表要在一屏里塞进更多信息，选这个。代价是气质相对常规，需要靠细节打磨出质感。</p>
+      </div>
+    </section>
+
+    <!-- 方向 C -->
+    <section class="d" id="dC">
+      <div class="d-head">
+        <span class="d-mark">C</span>
+        <span>
+          <span class="d-code">EDITORIAL</span>
+          <div class="d-name">剪报</div>
+        </span>
+      </div>
+
+      <div class="dials">
+        <div class="dial"><div class="dial-l">VARIANCE</div><div class="dial-v">7</div>
+          <div class="dial-bar"><div class="dial-fill" style="width:70%"></div></div></div>
+        <div class="dial"><div class="dial-l">MOTION</div><div class="dial-v">3</div>
+          <div class="dial-bar"><div class="dial-fill" style="width:30%"></div></div></div>
+        <div class="dial"><div class="dial-l">DENSITY</div><div class="dial-v">4</div>
+          <div class="dial-bar"><div class="dial-fill" style="width:40%"></div></div></div>
+      </div>
+
+      <div class="row-l">色板</div>
+      <div class="sw">
+        <div class="sw-i"><span class="sw-c" style="background:#FAFAF9"></span>
+          <span class="sw-t"><span class="sw-n">纸白</span><span class="sw-v">#FAFAF9</span></span>
+          <span class="sw-note">中性，非米色</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#F1F1EF"></span>
+          <span class="sw-t"><span class="sw-n">辅助底</span><span class="sw-v">#F1F1EF</span></span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#DCDCD8"></span>
+          <span class="sw-t"><span class="sw-n">发丝线</span><span class="sw-v">#DCDCD8</span></span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#17171A"></span>
+          <span class="sw-t"><span class="sw-n">正文</span><span class="sw-v">#17171A</span></span>
+          <span class="sw-note">对比 15.1:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#5C5C63"></span>
+          <span class="sw-t"><span class="sw-n">次要</span><span class="sw-v">#5C5C63</span></span>
+          <span class="sw-note">对比 6.3:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#6F6F76"></span>
+          <span class="sw-t"><span class="sw-n">三级</span><span class="sw-v">#6F6F76</span></span>
+          <span class="sw-note">对比 4.8:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#C4442C"></span>
+          <span class="sw-t"><span class="sw-n">强调</span><span class="sw-v">#C4442C</span></span>
+          <span class="sw-note">对比 5.4:1</span></div>
+        <div class="sw-i"><span class="sw-c" style="background:#F6E7E3"></span>
+          <span class="sw-t"><span class="sw-n">强调·浅底</span><span class="sw-v">#F6E7E3</span></span></div>
+      </div>
+
+      <div class="row-l">字阶</div>
+      <div class="ts">
+        <div class="ts-i"><span class="ts-k">头条标题</span>
+          <span class="ts-s" style="font-family:var(--serif);font-size:40px;font-weight:700;line-height:1.28">机器学习</span>
+          <span class="ts-m">宋 40 / 700</span></div>
+        <div class="ts-i"><span class="ts-k">条目标题</span>
+          <span class="ts-s" style="font-family:var(--serif);font-size:18px;font-weight:700">图书馆座位</span>
+          <span class="ts-m">宋 18 / 700</span></div>
+        <div class="ts-i"><span class="ts-k">正文</span>
+          <span class="ts-s" style="font-size:15px">正文与评论</span>
+          <span class="ts-m">15 / 1.92</span></div>
+        <div class="ts-i"><span class="ts-k">元数据</span>
+          <span class="ts-s" style="font-family:var(--mono);font-size:12px">1,247 阅</span>
+          <span class="ts-m">等宽 12</span></div>
+      </div>
+
+      <div class="row-l">圆角与动效</div>
+      <div class="spec">
+        <div class="spec-item"><i class="ti ti-square"></i>
+          <span class="txt">全局 <b>0 圆角</b>，控件用 2px。容器一律不用卡片，靠栏规则与发丝线分级。</span></div>
+        <div class="spec-item"><i class="ti ti-wave-sine"></i>
+          <span class="txt">曲线 <b class="mono">cubic-bezier(.16,1,.3,1)</b>，仅一次整体展开，不逐条 stagger。</span></div>
+        <div class="spec-item"><i class="ti ti-typography"></i>
+          <span class="txt">标题宋体、正文黑体，正文走<b>双栏 + 栏间竖线</b>，首字下沉。</span></div>
+      </div>
+
+      <div class="verdict">
+        <div class="verdict-l">选择它的理由</div>
+        <p class="verdict-t">如果你想让社区<b>有辨识度</b>，并且愿意接受一屏信息变少，选这个。宋体在低分屏上不如黑体锐利，且 0 圆角会显得偏严肃。</p>
+      </div>
+    </section>
+
+  </div>
+</div>
+</body>
+</html>

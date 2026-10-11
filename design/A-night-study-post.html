@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>同窗 · 方向A 晚自习 · 帖子详情</title>
+<link rel="stylesheet" href="assets/tabler-icons.css">
+<style>
+/* ============================================================
+   方向 A「晚自习」 帖子详情
+   与首页共用同一套令牌，主题锁定深色，不做区块反转
+   阅读区容器最宽 65ch，正文 15.5px / 行高 1.85
+   ============================================================ */
+:root{
+  --bg:#0E1013; --surface:#15181D; --surface-2:#1C2027;
+  --line:#262B33; --line-soft:#1E232A;
+  --ink:#E8EAED; --ink-2:#9BA3AE; --ink-3:#8A94A2;
+  --accent:#D8A24C; --accent-dim:#3A2F1B; --accent-ink:#F3DCB4;
+  --r-card:10px; --r-ctrl:8px; --r-full:999px;
+  --sans:"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Noto Sans SC",-apple-system,sans-serif;
+  --mono:ui-monospace,"Cascadia Code","JetBrains Mono",Consolas,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.8}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.ti{vertical-align:-.125em}
+
+.topbar{position:sticky;top:0;z-index:40;height:64px;background:rgba(14,16,19,.86);
+  backdrop-filter:blur(14px) saturate(150%);border-bottom:1px solid var(--line-soft)}
+.topbar-in{max-width:1180px;margin:0 auto;height:100%;padding:0 28px;display:flex;align-items:center;gap:20px}
+.brand{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:600}
+.brand-mark{width:26px;height:26px;border-radius:7px;flex:none;display:grid;place-items:center;
+  background:linear-gradient(150deg,var(--accent),#A87830);color:#1A1408;font-size:14px;font-weight:700}
+.search{flex:1;max-width:400px;height:38px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-ctrl);display:flex;align-items:center;gap:9px;padding:0 13px;color:var(--ink-3);font-size:14px}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.btn-primary{height:38px;padding:0 17px;border-radius:var(--r-ctrl);background:var(--accent);
+  color:#1A1408;font-weight:600;font-size:14px;display:flex;align-items:center;gap:7px;
+  transition:transform .18s var(--ease),background .18s var(--ease)}
+.btn-primary:hover{background:#E2AF5C}
+.btn-primary:active{transform:translateY(1px) scale(.98)}
+.btn-primary i{font-size:16px}
+.icon-btn{width:38px;height:38px;border-radius:var(--r-ctrl);display:grid;place-items:center;
+  color:var(--ink-2);font-size:19px;position:relative;transition:background .2s var(--ease),color .2s var(--ease)}
+.icon-btn:hover{background:var(--surface);color:var(--ink)}
+.badge-dot{position:absolute;top:7px;right:8px;min-width:16px;height:16px;padding:0 4px;border-radius:var(--r-full);
+  background:var(--accent);color:#1A1408;font-size:10.5px;font-weight:700;font-family:var(--mono);
+  display:grid;place-items:center;line-height:1}
+.avatar{width:32px;height:32px;border-radius:var(--r-full);flex:none;display:grid;place-items:center;
+  font-size:13px;font-weight:600;color:#0E1013;background:#8C949F;line-height:1}
+
+.shell{max-width:1180px;margin:0 auto;padding:22px 28px 72px;
+  display:grid;grid-template-columns:minmax(0,1fr) 296px;gap:30px;align-items:start}
+.crumb{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-3);margin-bottom:16px}
+.crumb:hover{color:var(--ink-2)}
+.crumb i{font-size:14px}
+
+/* ---------- 主题帖 ---------- */
+.post-head{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.flag{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:5px;
+  font-size:11.5px;font-weight:500;line-height:1;letter-spacing:.01em}
+.flag i{font-size:13.5px}
+.flag-accent{background:var(--accent-dim);color:var(--accent-ink)}
+.flag-quiet{background:var(--surface-2);color:var(--ink-2)}
+.flag-solved{background:#1B2E24;color:#7FC79B}
+h1{font-size:27px;line-height:1.45;font-weight:600;letter-spacing:-.005em;margin-bottom:16px}
+.byline{display:flex;align-items:center;gap:11px;padding-bottom:18px;border-bottom:1px solid var(--line-soft)}
+.byline-body{min-width:0;flex:1}
+.byline-name{font-size:14px;font-weight:500}
+.byline-sub{font-size:12px;color:var(--ink-3);font-family:var(--mono);margin-top:2px}
+.follow{height:32px;padding:0 13px;border-radius:var(--r-ctrl);border:1px solid var(--line);
+  font-size:13px;color:var(--ink-2);transition:all .2s var(--ease)}
+.follow:hover{border-color:var(--accent);color:var(--accent)}
+
+/* 正文：阅读区最宽 65ch */
+.prose{max-width:65ch;padding:24px 0 4px;font-size:15.5px;line-height:1.85;color:#DFE2E6}
+.prose p{margin-bottom:15px}
+.prose strong{color:var(--ink);font-weight:600}
+.prose h2{font-size:16.5px;font-weight:600;color:var(--ink);margin:24px 0 10px;letter-spacing:.005em}
+.prose ul{list-style:none;margin:0 0 15px;padding-left:2px}
+.prose li{position:relative;padding-left:17px;margin-bottom:6px}
+.prose li::before{content:"";position:absolute;left:1px;top:.72em;width:5px;height:5px;border-radius:1px;background:var(--accent);opacity:.75}
+.prose code{font-family:var(--mono);font-size:13px;background:var(--surface-2);
+  padding:2px 5px;border-radius:4px;color:var(--accent-ink)}
+.prose pre{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);
+  padding:14px 16px;overflow-x:auto;margin:0 0 15px}
+.prose pre code{background:none;padding:0;font-size:12.5px;line-height:1.7;color:#C8CDD4}
+
+/* 操作条 */
+.actions{display:flex;align-items:center;gap:10px;padding:20px 0;margin-top:8px;
+  border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
+.act{height:36px;padding:0 15px;border-radius:var(--r-ctrl);border:1px solid var(--line);
+  display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink-2);
+  transition:transform .18s var(--ease),border-color .2s var(--ease),color .2s var(--ease),background .2s var(--ease)}
+.act i{font-size:16.5px}
+.act:hover{border-color:#39414C;color:var(--ink)}
+.act:active{transform:translateY(1px) scale(.98)}
+.act .num{font-family:var(--mono);font-size:12.5px}
+.act.on{background:var(--accent-dim);border-color:#4A3C22;color:var(--accent-ink)}
+.act.on i{color:var(--accent)}
+.act-quiet{margin-left:auto;border-color:transparent;color:var(--ink-3)}
+.act-quiet:hover{border-color:var(--line)}
+
+/* ---------- 已采纳答案 ---------- */
+.accepted{
+  margin-top:26px;background:var(--surface);border:1px solid #3B3220;
+  border-left:3px solid var(--accent);border-radius:var(--r-card);padding:20px 22px;
+}
+.accepted-tag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  color:var(--accent);margin-bottom:14px;letter-spacing:.02em}
+.accepted-tag i{font-size:16px}
+
+/* ---------- 评论 ---------- */
+.section-h{display:flex;align-items:center;gap:9px;margin:34px 0 6px;font-size:14px;
+  font-weight:600;color:var(--ink-2);letter-spacing:.03em}
+.section-h i{font-size:17px;color:var(--accent)}
+.section-h .n{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);font-weight:400}
+.cmt{padding:20px 0;border-bottom:1px solid var(--line-soft)}
+.cmt-top{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.cmt-name{font-size:14px;font-weight:500}
+.cmt-sub{font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+.cmt-badge{display:inline-flex;align-items:center;gap:3px;height:18px;padding:0 6px;border-radius:4px;
+  background:var(--surface-2);color:var(--accent);font-size:11px;font-weight:500}
+.cmt-badge i{font-size:12px}
+.cmt-time{margin-left:auto;font-size:11.5px;color:var(--ink-3);font-family:var(--mono)}
+.cmt-body{max-width:65ch;font-size:14.6px;line-height:1.85;color:#D4D8DD}
+.cmt-body p{margin-bottom:12px}
+.cmt-body p:last-child{margin-bottom:0}
+.cmt-body code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);
+  padding:2px 5px;border-radius:4px;color:var(--accent-ink)}
+.cmt-body pre{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);
+  padding:13px 15px;overflow-x:auto;margin:0 0 12px}
+.cmt-body pre code{background:none;padding:0;font-size:12.5px;line-height:1.7;color:#C8CDD4}
+.cmt-act{display:flex;align-items:center;gap:16px;margin-top:12px;font-size:12.5px;color:var(--ink-3)}
+.cmt-act button{display:flex;align-items:center;gap:5px;transition:color .18s var(--ease)}
+.cmt-act button:hover{color:var(--ink)}
+.cmt-act i{font-size:15px}
+.cmt-act .num{font-family:var(--mono);font-size:12px}
+/* 楼中楼：仅两级 */
+.sub{margin-top:14px;margin-left:46px;background:var(--surface);border-radius:var(--r-card);
+  padding:14px 16px;display:flex;flex-direction:column;gap:13px}
+.sub-i{display:flex;gap:10px}
+.sub-line{width:2px;border-radius:2px;background:var(--line);flex:none}
+.sub-c{min-width:0}
+.sub-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.sub-name{font-size:13px;font-weight:500}
+.sub-to{font-size:12.5px;color:var(--ink-3)}
+.sub-to b{color:var(--accent);font-weight:500}
+.sub-txt{font-size:13.6px;line-height:1.8;color:var(--ink-2);max-width:62ch}
+.more{display:flex;align-items:center;gap:6px;margin-top:14px;font-size:12.5px;color:var(--accent);font-weight:500}
+
+/* 发评论 */
+.composer{margin-top:26px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:16px}
+.composer-in{min-height:62px;color:var(--ink-3);font-size:14px;line-height:1.8}
+.composer-bar{display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:12px;
+  border-top:1px solid var(--line-soft);color:var(--ink-3);font-size:18px}
+.composer-bar .spacer{flex:1}
+.composer-bar .hint{font-size:12px;font-family:var(--mono)}
+.btn-sm{height:34px;padding:0 15px;border-radius:var(--r-ctrl);background:var(--accent);
+  color:#1A1408;font-size:13.5px;font-weight:600;transition:transform .18s var(--ease),background .18s var(--ease)}
+.btn-sm:hover{background:#E2AF5C}
+.btn-sm:active{transform:translateY(1px) scale(.98)}
+
+/* ---------- 右栏 ---------- */
+.rail{position:sticky;top:86px;display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r-card);padding:16px 17px}
+.panel-title{font-size:13px;font-weight:600;color:var(--ink-2);letter-spacing:.04em;
+  display:flex;align-items:center;gap:7px;margin-bottom:13px}
+.panel-title i{font-size:16px;color:var(--accent)}
+.course-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;
+  background:var(--surface-2);margin-bottom:12px}
+.course-code{font-family:var(--mono);font-size:11.5px;color:var(--accent);margin-top:3px}
+.course-name{font-size:14px;font-weight:600}
+.course-row{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--ink-2);padding:7px 2px}
+.course-row b{font-family:var(--mono);color:var(--ink);font-weight:600}
+.sim{display:block;padding:10px 9px;border-radius:7px;transition:background .2s var(--ease)}
+.sim:hover{background:var(--surface-2)}
+.sim-t{font-size:13.4px;line-height:1.6;color:var(--ink);display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sim-s{font-size:11.5px;color:var(--ink-3);margin-top:4px;font-family:var(--mono)}
+.mode-note{font-size:12px;color:var(--ink-3);line-height:1.7;border-left:2px solid var(--accent);padding-left:11px}
+.mode-note b{color:var(--accent-ink);font-weight:600}
+
+@media (max-width:1024px){
+  .shell{grid-template-columns:1fr;gap:20px;padding:18px 20px 56px}
+  .rail{position:static}
+  .topbar-in{padding:0 20px}
+  h1{font-size:22px}
+  .sub{margin-left:0}
+}
+@media (max-width:640px){
+  .search{display:none}
+  .byline{flex-wrap:wrap}
+}
+.js-anim .cmt,.js-anim .accepted,.js-anim .prose,.js-anim .composer,.js-anim .panel{opacity:0}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="brand-mark">同</span>同窗</div>
+    <div class="search"><i class="ti ti-search"></i>搜索帖子、课程、标签</div>
+    <div class="topbar-actions">
+      <button class="btn-primary"><i class="ti ti-pencil"></i>发帖</button>
+      <button class="icon-btn"><i class="ti ti-bell"></i><span class="badge-dot">6</span></button>
+      <div class="avatar" style="background:#D8A24C">郭</div>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <div>
+    <button class="crumb"><i class="ti ti-arrow-left"></i>课程 / 机器学习</button>
+
+    <article>
+      <div class="post-head">
+        <span class="flag flag-solved"><i class="ti ti-circle-check"></i>已解决</span>
+        <span class="flag flag-quiet">求助</span>
+        <span class="flag flag-quiet"><i class="ti ti-message-circle"></i>38 条回复</span>
+      </div>
+
+      <h1>有人选过机器学习这门课吗？作业量怎么样</h1>
+
+      <div class="byline">
+        <div class="avatar" style="background:#7FB2C9;width:38px;height:38px;font-size:15px">林</div>
+        <div class="byline-body">
+          <div class="byline-name">林晓萌</div>
+          <div class="byline-sub">3 小时前 · 计算机学院 2023 级 · 阅读 1,247</div>
+        </div>
+        <button class="follow"><i class="ti ti-plus"></i> 关注课程</button>
+      </div>
+
+      <div class="prose">
+        <p>下学期选课想选这门课，但看往年的评价说法差得挺多的。想在这里问一下选过的同学几个具体的问题。</p>
+        <ul>
+          <li>平时作业一共几次，每次大概要投入多少小时</li>
+          <li>期末考试还是大作业，如果是大作业能不能组队</li>
+          <li>需不需要先修概率论和线代，我线代只拿了 78 分</li>
+          <li>最后给分情况怎么样</li>
+        </ul>
+        <p>主要是想确认能不能和另外两门专业课同时扛下来，谢谢。</p>
+      </div>
+
+      <div class="actions">
+        <button class="act on"><i class="ti ti-heart-filled"></i>已赞<span class="num">96</span></button>
+        <button class="act"><i class="ti ti-bookmark"></i>收藏<span class="num">41</span></button>
+        <button class="act"><i class="ti ti-share-2"></i>分享</button>
+        <button class="act act-quiet"><i class="ti ti-flag"></i>举报</button>
+      </div>
+    </article>
+
+    <!-- 已采纳答案 -->
+    <section class="accepted">
+      <div class="accepted-tag"><i class="ti ti-circle-check-filled"></i>提问者已采纳此回答</div>
+      <div class="cmt" style="border:none;padding-top:0">
+        <div class="cmt-top">
+          <div class="avatar" style="background:#C9A0C0">周</div>
+          <span class="cmt-name">周予安</span>
+          <span class="cmt-badge"><i class="ti ti-award"></i>精华答主</span>
+          <span class="cmt-time">2 小时前</span>
+        </div>
+        <div class="cmt-body">
+          <p>我上学期刚选完，逐条回答你的问题。</p>
+          <p><strong>作业一共 5 次</strong>，前两次偏实现，每次三四个小时能搞定。第三次开始要求手推，包括反向传播和 softmax 的梯度，我那次花了差不多八小时。后面两次是复现论文里的小实验，比较看运气，选题好的话不费劲。</p>
+          <p><strong>期末是开卷考试加一个大作业</strong>，大作业可以两人组队，占三成。考试不难但题量偏大，最后一题是设计题，写思路就行。</p>
+          <p><strong>线代 78 分够用</strong>，不过矩阵求导和特征值那两块最好提前过一遍，课上不会单独讲。概率论用到的比想象中少，主要涉及贝叶斯那一章。</p>
+          <p><strong>给分比较正常</strong>，我们那届平均分在 82 上下，认真做完作业一般不会低。</p>
+          <p>和另外两门专业课一起选的话，我是同期选了操作系统和编译原理，能扛，但那两个月基本没有周末。</p>
+        </div>
+        <div class="cmt-act">
+          <button><i class="ti ti-heart"></i><span class="num">142</span></button>
+          <button><i class="ti ti-message-circle"></i>回复</button>
+          <button><i class="ti ti-bookmark"></i>收藏</button>
+        </div>
+        <!-- 楼中楼：仅两级 -->
+        <div class="sub">
+          <div class="sub-i">
+            <div class="sub-line"></div>
+            <div class="sub-c">
+              <div class="sub-head"><span class="sub-name">林晓萌</span><span class="sub-to">回复 <b>周予安</b></span></div>
+              <div class="sub-txt">请问第三次作业的推导需要自己补数学吗，还是课上会带着讲一遍</div>
+            </div>
+          </div>
+          <div class="sub-i">
+            <div class="sub-line"></div>
+            <div class="sub-c">
+              <div class="sub-head"><span class="sub-name">周予安</span><span class="sub-to">回复 <b>林晓萌</b></span></div>
+              <div class="sub-txt">课上只讲结论，推导要自己补。助教每周有一小时答疑，那节课建议都去。</div>
+            </div>
+          </div>
+          <div class="sub-i">
+            <div class="sub-line"></div>
+            <div class="sub-c">
+              <div class="sub-head"><span class="sub-name">何砚清</span><span class="sub-to">回复 <b>周予安</b></span></div>
+              <div class="sub-txt">补充一点，大作业的选题如果在往届范围里挑，能省不少时间。我把去年的题目整理在另一个帖子里了。</div>
+            </div>
+          </div>
+          <button class="more"><i class="ti ti-chevron-down"></i>展开其余 4 条回复</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 其余评论 -->
+    <div class="section-h"><i class="ti ti-messages"></i>全部回复<span class="n">38</span></div>
+
+    <div class="cmt">
+      <div class="cmt-top">
+        <div class="avatar" style="background:#9CB88A">陈</div>
+        <span class="cmt-name">陈子昂</span>
+        <span class="cmt-time">1 小时前</span>
+      </div>
+      <div class="cmt-body">
+        <p>我室友选了，说前三次作业是断崖式难度，第三次直接卡了两天。他贴给我看过一道题，大概是这种形式：</p>
+        <pre><code># 要求手写实现 softmax 的反向传播，不许调用自动求导
+def backward(dout: np.ndarray) -> np.ndarray:
+    # dout: 上游梯度, shape = (N, C)
+    # TODO: 返回 dX, 以及 dW / db
+    ...</code></pre>
+        <p>结论是数学底子不牢的话，要么提前补，要么别选。</p>
+      </div>
+      <div class="cmt-act">
+        <button><i class="ti ti-heart"></i><span class="num">63</span></button>
+        <button><i class="ti ti-message-circle"></i>回复</button>
+        <button><i class="ti ti-bookmark"></i>收藏</button>
+      </div>
+    </div>
+
+    <div class="cmt">
+      <div class="cmt-top">
+        <div class="avatar" style="background:#8C949F">匿</div>
+        <span class="cmt-name">匿名用户</span>
+        <span class="cmt-time">46 分钟前</span>
+      </div>
+      <div class="cmt-body">
+        <p>提醒一下，这门课两个老师风格差挺大。选之前最好看一下开课教师，另一个班作业是纯编程，没有手推的部分。</p>
+      </div>
+      <div class="cmt-act">
+        <button><i class="ti ti-heart"></i><span class="num">88</span></button>
+        <button><i class="ti ti-message-circle"></i>回复</button>
+        <button><i class="ti ti-bookmark"></i>收藏</button>
+      </div>
+      <div class="sub">
+        <div class="sub-i">
+          <div class="sub-line"></div>
+          <div class="sub-c">
+            <div class="sub-head"><span class="sub-name">林晓萌</span><span class="sub-to">回复 <b>匿名用户</b></span></div>
+            <div class="sub-txt">请问方便说下是哪位老师吗</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <div class="composer-in">写下你的看法，支持 Markdown 与图片粘贴</div>
+      <div class="composer-bar">
+        <i class="ti ti-photo"></i><i class="ti ti-code"></i><i class="ti ti-mood-smile"></i>
+        <span class="spacer"></span>
+        <span class="hint">登录取匿名</span>
+        <button class="btn-sm">发布</button>
+      </div>
+    </div>
+  </div>
+
+  <aside class="rail">
+    <section class="panel">
+      <div class="panel-title"><i class="ti ti-school"></i>关联课程</div>
+      <div class="course-card">
+        <div class="avatar" style="background:#D8A24C;width:38px;height:38px;border-radius:8px;font-size:15px">ML</div>
+        <div>
+          <div class="course-name">机器学习</div>
+          <div class="course-code">CS 3012 · 计算机学院</div>
+        </div>
+      </div>
+      <div class="course-row"><span>本课讨论</span><b>86</b></div>
+      <div class="course-row"><span>推荐度</span><b>4.2 / 5</b></div>
+      <div class="course-row"><span>平均作业时长</span><b>6.5 h</b></div>
+      <div class="course-row"><span>给分中位数</span><b>82</b></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title"><i class="ti ti-notes"></i>同课程其他讨论</div>
+      <a class="sim" href="#">
+        <div class="sim-t">机器学习大作业选题清单（往届整理）</div>
+        <div class="sim-s">62 回复 · 3 天前</div>
+      </a>
+      <a class="sim" href="#">
+        <div class="sim-t">两个老师的考核方式有什么区别</div>
+        <div class="sim-s">31 回复 · 5 天前</div>
+      </a>
+      <a class="sim" href="#">
+        <div class="sim-t">没学过概率论能直接上吗</div>
+        <div class="sim-s">27 回复 · 1 周前</div>
+      </a>
+      <a class="sim" href="#">
+        <div class="sim-t">期末开卷考试能带打印的笔记吗</div>
+        <div class="sim-s">14 回复 · 1 周前</div>
+      </a>
+    </section>
+
+    <p class="mode-note">正文与评论统一限制在 <b>65ch</b> 内，行高 1.85。深浅色均为独立令牌，切换时不会改变信息层级。</p>
+  </aside>
+</main>
+
+<script src="assets/gsap.min.js"></script>
+<script>
+/* 动效动机：长文页面用极轻的逐段淡入表达阅读顺序（标题 → 正文 → 采纳答案 → 回复）
+   刻意不做滚动劫持与视差，避免干扰阅读 */
+const mm = gsap.matchMedia();
+mm.add({
+  motion: "(prefers-reduced-motion: no-preference)",
+  still:  "(prefers-reduced-motion: reduce)"
+}, (ctx) => {
+  const { motion } = ctx.conditions;
+  document.documentElement.classList.add('js-anim');
+  if (!motion) {
+    gsap.set('.prose, .accepted, .cmt, .composer, .panel, .post-head, h1, .byline, .actions', { opacity: 1 });
+    document.documentElement.classList.remove('js-anim');
+    return;
+  }
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  tl.fromTo('.post-head', { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: .38 })
+    .fromTo('h1', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: .5 }, '-=.2')
+    .fromTo('.byline', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: .45 }, '-=.3')
+    .fromTo('.prose', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: .5 }, '-=.25')
+    .fromTo('.actions', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: .4 }, '-=.25')
+    .fromTo('.accepted', { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: .55 }, '-=.15')
+    .fromTo('.cmt', { autoAlpha: 0, y: 14 },
+      { autoAlpha: 1, y: 0, duration: .5, stagger: .07 }, '-=.3')
+    .fromTo('.composer', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: .45 }, '-=.2')
+    .fromTo('.panel', { autoAlpha: 0, y: 12 },
+      { autoAlpha: 1, y: 0, duration: .5, stagger: .09 }, '-=.5');
+  return () => document.documentElement.classList.remove('js-anim');
+});
+</script>
+</body>
+</html>
