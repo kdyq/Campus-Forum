@@ -1,0 +1,51 @@
+// 业务错误码（开发文档 §4.2）
+export const CODES = {
+  OK: 0,
+  // 通用
+  PARAM: 10001,
+  UNAUTHORIZED: 10002,
+  FORBIDDEN: 10003,
+  NOT_FOUND: 10004,
+  TOO_MANY: 10005,
+  SERVER: 10006,
+  // 账号
+  USERNAME_TAKEN: 20001,
+  USERNAME_INVALID: 20002,
+  PASSWORD_INVALID: 20003,
+  BAD_CREDENTIALS: 20004,
+  ACCOUNT_BANNED: 20005,
+  EMAIL_DOMAIN_NOT_ALLOWED: 20006,
+  CODE_INVALID: 20007,
+  INVITE_INVALID: 20008,
+  LOGIN_LOCKED: 20009,
+  // 内容
+  BOARD_NOT_FOUND: 30001,
+  POST_NOT_FOUND: 30002,
+  POST_LOCKED: 30003,
+  SENSITIVE: 30004,
+  CONTENT_TOO_LONG: 30005,
+  NO_EDIT_PERM: 30006,
+  COMMENT_DEPTH: 30007,
+  POST_PENDING: 30008,
+  // 互动
+  ALREADY_LIKED: 40001,
+  ALREADY_BOOKMARKED: 40002,
+  SELF_TARGET: 40003,
+  DUPLICATE_REPORT: 40004,
+  NEEDS_REVIEW: 40005,
+  // 上传
+  FILE_TYPE: 50001,
+  FILE_TOO_LARGE: 50002,
+  TOO_MANY_FILES: 50003,
+} as const;
+
+export class AppError extends Error {
+  code: number;
+  httpStatus: number;
+
+  constructor(code: number, message: string, httpStatus = 200) {
+    super(message);
+    this.code = code;
+    this.httpStatus = httpStatus;
+  }
+}

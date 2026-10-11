@@ -1,0 +1,389 @@
+// 同窗 · 数据模型（开发文档 §3）
+// 说明：状态类字段使用 String 列 + TS as-const 常量（Node 原生 TS 禁用 enum，见开发文档 §2.2）
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  username        String    @unique @db.VarChar(20) // 登录名，纯 ASCII，注册后不可改
+  displayName     String    @db.VarChar(20) // 展示名，允许中文
+  passwordHash    String    @db.VarChar(100)
+  email           String    @unique @db.VarChar(120)
+  emailVerified   Boolean   @default(false)
+  avatarUrl       String?   @db.VarChar(255)
+  bio             String?   @db.VarChar(200)
+  college         String?   @db.VarChar(50)
+  grade           String?   @db.VarChar(20)
+  major           String?   @db.VarChar(50)
+  role            String    @default("USER") @db.VarChar(20) // SUPER_ADMIN | MODERATOR | USER
+  level           Int       @default(1)
+  exp             Int       @default(0)
+  status          String    @default("ACTIVE") @db.VarChar(20) // ACTIVE | MUTED | BANNED
+  mutedUntil      DateTime?
+  invitedByCodeId Int?
+  createdAt       DateTime  @default(now())
+  lastActiveAt    DateTime  @default(now())
+
+  inviteCode           InviteCode?      @relation("InvitedUsers", fields: [invitedByCodeId], references: [id])
+  createdCodes         InviteCode[]     @relation("CreatedCodes")
+  posts                Post[]
+  comments             Comment[]
+  commentRepliesTo     Comment[]        @relation("CommentReplyTo")
+  postRevisions        PostRevision[]
+  likes                Like[]
+  bookmarkFolders      BookmarkFolder[]
+  bookmarks            Bookmark[]
+  following            Follow[]         @relation("FollowFollower")
+  followers            Follow[]         @relation("FollowFollowee")
+  notifications        Notification[]   @relation("NotificationRecipient")
+  reportsFiled         Report[]         @relation("ReportReporter")
+  reportsHandled       Report[]         @relation("ReportHandler")
+  drafts               Draft[]
+  courseReviews        CourseReview[]
+  auditLogs            AuditLog[]
+  moderatedBoards      Board[]          @relation("BoardModerators")
+  createdAnnouncements Announcement[]   @relation("AnnouncementAuthor")
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model InviteCode {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique @db.VarChar(32)
+  createdById Int?
+  maxUses     Int       @default(1)
+  usedCount   Int       @default(0)
+  expiresAt   DateTime?
+  disabled    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  createdBy User?  @relation("CreatedCodes", fields: [createdById], references: [id])
+  invited   User[] @relation("InvitedUsers")
+}
+
+model Board {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(20)
+  slug        String  @unique @db.VarChar(30)
+  description String? @db.VarChar(120)
+  order       Int     @default(0)
+  status      String  @default("ACTIVE") @db.VarChar(20) // ACTIVE | HIDDEN
+
+  posts      Post[]
+  moderators User[] @relation("BoardModerators")
+}
+
+model Tag {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(20)
+  slug       String   @unique @db.VarChar(30)
+  postCount  Int      @default(0)
+  isOfficial Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  synonyms  TagSynonym[]
+  posts     PostTag[]
+  followers Follow[]     @relation("TagFollowers")
+}
+
+model TagSynonym {
+  id      Int    @id @default(autoincrement())
+  tagId   Int
+  synonym String @db.VarChar(30)
+
+  tag Tag @relation(fields: [tagId], references: [id])
+
+  @@unique([tagId, synonym])
+}
+
+model PostTag {
+  postId Int
+  tagId  Int
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+model Post {
+  id                Int       @id @default(autoincrement())
+  boardId           Int
+  authorId          Int
+  isAnonymous       Boolean   @default(false)
+  title             String    @db.VarChar(80)
+  content           String    @db.LongText
+  excerpt           String?   @db.VarChar(200) // 列表用摘要，写入时截取
+  courseId          Int?
+  status            String    @default("NORMAL") @db.VarChar(20) // NORMAL | SOLVED | LOCKED | PENDING | REMOVED
+  isPinned          Boolean   @default(false)
+  isFeatured        Boolean   @default(false)
+  viewCount         Int       @default(0)
+  likeCount         Int       @default(0)
+  commentCount      Int       @default(0)
+  bookmarkCount     Int       @default(0)
+  acceptedCommentId Int?      @unique
+  lastActivityAt    DateTime  @default(now()) // 列表排序主键
+  editedAt          DateTime?
+  editCount         Int       @default(0)
+  createdAt         DateTime  @default(now())
+  deletedAt         DateTime?
+
+  board           Board          @relation(fields: [boardId], references: [id])
+  author          User           @relation(fields: [authorId], references: [id])
+  course          Course?        @relation(fields: [courseId], references: [id])
+  comments        Comment[]
+  acceptedComment Comment?       @relation("AcceptedAnswer", fields: [acceptedCommentId], references: [id])
+  revisions       PostRevision[]
+  tags            PostTag[]
+  bookmarks       Bookmark[]
+  views           View[]
+
+  @@index([boardId, lastActivityAt])
+  @@index([authorId, createdAt])
+  @@index([status, isPinned, lastActivityAt])
+  @@fulltext([title, content], map: "ft_posts")
+}
+
+model PostRevision {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  title     String   @db.VarChar(80)
+  content   String   @db.LongText
+  editorId  Int
+  createdAt DateTime @default(now())
+
+  post   Post @relation(fields: [postId], references: [id])
+  editor User @relation(fields: [editorId], references: [id])
+
+  @@index([postId, createdAt])
+}
+
+model Comment {
+  id            Int       @id @default(autoincrement())
+  postId        Int
+  authorId      Int
+  isAnonymous   Boolean   @default(false)
+  parentId      Int? // 两级结构：顶级为 null，回复指向顶级评论
+  replyToUserId Int? // 二级回复指向被回复者
+  content       String    @db.VarChar(2000)
+  status        String    @default("NORMAL") @db.VarChar(20) // NORMAL | PENDING | REMOVED
+  likeCount     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  deletedAt     DateTime?
+
+  post        Post     @relation(fields: [postId], references: [id])
+  author      User     @relation(fields: [authorId], references: [id])
+  parent      Comment? @relation("CommentThread", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentThread")
+  replyToUser User?    @relation("CommentReplyTo", fields: [replyToUserId], references: [id])
+  acceptedForPost Post? @relation("AcceptedAnswer")
+
+  @@index([postId, status, createdAt])
+  @@index([parentId, createdAt])
+}
+
+// 点赞目标为多态（POST | COMMENT），不做数据库外键，由应用层保证一致性
+model Like {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  targetType String   @db.VarChar(10) // POST | COMMENT
+  targetId   Int
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
+}
+
+model BookmarkFolder {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  name      String   @db.VarChar(30)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user      User       @relation(fields: [userId], references: [id])
+  bookmarks Bookmark[]
+
+  @@index([userId, order])
+}
+
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  postId    Int
+  folderId  Int? // null = 默认收藏夹
+  createdAt DateTime @default(now())
+
+  user   User            @relation(fields: [userId], references: [id])
+  post   Post            @relation(fields: [postId], references: [id])
+  folder BookmarkFolder? @relation(fields: [folderId], references: [id])
+
+  @@unique([userId, postId, folderId])
+  @@index([userId, folderId])
+}
+
+// 关注：用户 / 标签 / 课程 三种目标共用一张表
+model Follow {
+  id         Int      @id @default(autoincrement())
+  followerId Int
+  followeeId Int?
+  tagId      Int?
+  courseId   Int?
+  createdAt  DateTime @default(now())
+
+  follower User    @relation("FollowFollower", fields: [followerId], references: [id])
+  followee User?   @relation("FollowFollowee", fields: [followeeId], references: [id])
+  tag      Tag?    @relation("TagFollowers", fields: [tagId], references: [id])
+  course   Course? @relation("CourseFollowers", fields: [courseId], references: [id])
+
+  @@unique([followerId, followeeId])
+  @@index([followeeId])
+}
+
+model View {
+  id         Int      @id @default(autoincrement())
+  postId     Int
+  userId     Int?
+  viewerHash String?  @db.VarChar(64) // 未登录访客指纹
+  viewedAt   DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id])
+
+  @@index([postId, userId])
+  @@index([postId, viewerHash])
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  recipientId Int
+  type        String   @db.VarChar(20) // REPLY | SUB_REPLY | MENTION | LIKE | BOOKMARK | ACCEPTED | SYSTEM | MODERATION
+  payload     Json
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  recipient User @relation("NotificationRecipient", fields: [recipientId], references: [id])
+
+  @@index([recipientId, isRead, createdAt])
+}
+
+model Report {
+  id          Int       @id @default(autoincrement())
+  reporterId  Int
+  targetType  String    @db.VarChar(10) // POST | COMMENT | USER
+  targetId    Int
+  reason      String    @db.VarChar(30)
+  detail      String?   @db.VarChar(500)
+  status      String    @default("PENDING") @db.VarChar(20) // PENDING | ACCEPTED | REJECTED
+  handledById Int?
+  handledAt   DateTime?
+  handleNote  String?   @db.VarChar(300)
+  createdAt   DateTime  @default(now())
+
+  reporter User  @relation("ReportReporter", fields: [reporterId], references: [id])
+  handler  User? @relation("ReportHandler", fields: [handledById], references: [id])
+
+  @@index([targetType, targetId, status])
+  @@index([status, createdAt])
+}
+
+model Draft {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique // 每人一份自动保存草稿
+  boardId   Int?
+  title     String?  @db.VarChar(80)
+  content   String?  @db.LongText
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, updatedAt])
+}
+
+model Course {
+  id              Int      @id @default(autoincrement())
+  name            String   @db.VarChar(60)
+  code            String   @unique @db.VarChar(20)
+  department      String?  @db.VarChar(60)
+  teacher         String?  @db.VarChar(30)
+  ratingScore     Float? // 结构化评分聚合（无评分时为 null）
+  ratingCount     Int      @default(0)
+  workloadScore   Float?
+  attendanceScore Float?
+  recommendScore  Float?
+  createdAt       DateTime @default(now())
+
+  posts     Post[]
+  reviews   CourseReview[]
+  followers Follow[]       @relation("CourseFollowers")
+
+  @@index([department])
+}
+
+model CourseReview {
+  id          Int      @id @default(autoincrement())
+  courseId    Int
+  userId      Int
+  rating      Int // 1-5
+  workload    Int // 作业量 1-5
+  attendance  Int // 点名频率 1-5
+  recommend   Int // 推荐度 1-5
+  content     String?  @db.VarChar(2000)
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([courseId, userId])
+  @@index([courseId, createdAt])
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  actorId    Int?
+  action     String   @db.VarChar(40)
+  targetType String?  @db.VarChar(10)
+  targetId   Int?
+  meta       Json?
+  ip         String?  @db.VarChar(45)
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+model SensitiveWord {
+  id        Int      @id @default(autoincrement())
+  word      String   @unique @db.VarChar(50)
+  level     String   @db.VarChar(10) // BLOCK | REVIEW
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(60)
+  content     String    @db.Text
+  type        String    @db.VarChar(10) // BANNER | MESSAGE
+  startsAt    DateTime
+  endsAt      DateTime?
+  createdById Int?
+  createdAt   DateTime  @default(now())
+
+  createdBy User? @relation("AnnouncementAuthor", fields: [createdById], references: [id])
+
+  @@index([type, startsAt, endsAt])
+}

@@ -1,0 +1,43 @@
+{
+  "name": "campus-forum-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "同窗 · 校园话题社区 后端（Node 24 原生运行 TypeScript，无构建步骤）",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.ts",
+    "start": "node src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "migrate": "prisma migrate dev",
+    "seed": "node prisma/seed.ts",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "ioredis": "^5.4.2",
+    "jose": "^6.0.11",
+    "multer": "^2.0.1",
+    "nodemailer": "^7.0.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^24.0.0",
+    "@types/nodemailer": "^6.4.17",
+    "prisma": "^6.5.0",
+    "typescript": "^5.9.2"
+  }
+}
