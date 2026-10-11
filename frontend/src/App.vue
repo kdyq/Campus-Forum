@@ -28,6 +28,9 @@ async function onLogout() {
           </nav>
           <div class="actions">
             <template v-if="session.user">
+              <RouterLink to="/p/new" class="new-post-link">
+                <el-button type="primary">发帖</el-button>
+              </RouterLink>
               <el-dropdown trigger="click">
                 <span class="user-chip" role="button" tabindex="0">
                   <UserAvatar

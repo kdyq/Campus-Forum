@@ -7,6 +7,12 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BoardTree: typeof import('./src/components/BoardTree.vue')['default']
+    BookmarkToggle: typeof import('./src/components/BookmarkToggle.vue')['default']
+    CommentEditor: typeof import('./src/components/CommentEditor.vue')['default']
+    CommentItem: typeof import('./src/components/CommentItem.vue')['default']
+    CommentList: typeof import('./src/components/CommentList.vue')['default']
+    ContentRenderer: typeof import('./src/components/ContentRenderer.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElConfigProvider: typeof import('element-plus/es')['ElConfigProvider']
@@ -16,9 +22,23 @@ declare module 'vue' {
     ElForm: typeof import('element-plus/es')['ElForm']
     ElFormItem: typeof import('element-plus/es')['ElFormItem']
     ElInput: typeof import('element-plus/es')['ElInput']
+    ElOption: typeof import('element-plus/es')['ElOption']
+    ElSelect: typeof import('element-plus/es')['ElSelect']
+    ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ElTag: typeof import('element-plus/es')['ElTag']
+    EmptyState: typeof import('./src/components/EmptyState.vue')['default']
+    FlagBadge: typeof import('./src/components/FlagBadge.vue')['default']
+    LikeToggle: typeof import('./src/components/LikeToggle.vue')['default']
+    PostItem: typeof import('./src/components/PostItem.vue')['default']
+    PostSkeleton: typeof import('./src/components/PostSkeleton.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SortBar: typeof import('./src/components/SortBar.vue')['default']
+    TagPill: typeof import('./src/components/TagPill.vue')['default']
     UserAvatar: typeof import('./src/components/UserAvatar.vue')['default']
+    UserLink: typeof import('./src/components/UserLink.vue')['default']
+  }
+  export interface ComponentCustomProperties {
+    vLoading: typeof import('element-plus/es')['ElLoadingDirective']
   }
 }
