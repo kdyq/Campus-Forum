@@ -394,7 +394,7 @@ const activeBoard = computed(() => boards.value.find((b) => b.slug === boardSlug
 
 @media (max-width: 860px) {
   .shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: 16px 18px 60px;
   }
 

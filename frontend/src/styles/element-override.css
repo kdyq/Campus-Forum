@@ -382,3 +382,42 @@
   background-color: var(--tw-surface-2);
   color: var(--tw-ink-2);
 }
+
+/* ==========================================================================
+   深色模式：Element Plus 变量对齐设计令牌。
+   EP 自带的 html.dark 变量文件会覆盖 :root 上的覆写，
+   因此在 html.dark 作用域下重新指向深色令牌（设计规范 §2.2 / §3.5）。
+   ========================================================================== */
+html.dark {
+  --el-color-primary: #4FB3B8;
+  --el-color-primary-light-3: #3A8F94;
+  --el-color-primary-light-5: #2A6B70;
+  --el-color-primary-light-7: #1D4A4E;
+  --el-color-primary-light-8: #173B3F;
+  --el-color-primary-light-9: #143034;
+  --el-color-primary-dark-2: #66C2C6;
+  --el-color-success: #7FC79B;
+  --el-color-warning: #D9A94C;
+  --el-color-danger: #E0776A;
+  --el-color-error: #E0776A;
+  --el-color-info: #828E96;
+  --el-bg-color: #161C1F;
+  --el-bg-color-page: #0F1416;
+  --el-bg-color-overlay: #1E2529;
+  --el-text-color-primary: #E6EAEC;
+  --el-text-color-regular: #9AA5AC;
+  --el-text-color-secondary: #828E96;
+  --el-text-color-placeholder: #828E96;
+  --el-text-color-disabled: #5C666E;
+  --el-border-color: #262E33;
+  --el-border-color-light: #212930;
+  --el-border-color-lighter: #1E2529;
+  --el-border-color-dark: #333D43;
+  --el-border-color-darker: #3E4A52;
+  --el-fill-color: #1E2529;
+  --el-fill-color-light: #222A2F;
+  --el-fill-color-lighter: #262E33;
+  --el-fill-color-blank: #161C1F;
+  --el-mask-color: rgba(0, 0, 0, 0.62);
+}
+

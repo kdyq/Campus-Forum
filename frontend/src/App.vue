@@ -226,6 +226,24 @@ const isAdmin = () => {
   .search {
     display: none;
   }
+
+  /* 顶栏移动端收紧：隐藏文字导航与昵称，保持单行（设计规范 §7） */
+  .topbar-in {
+    gap: 8px;
+    padding: 0 14px;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .user-chip {
+    padding: 2px;
+  }
+
+  .user-name {
+    display: none;
+  }
 }
 
 .nav-item {

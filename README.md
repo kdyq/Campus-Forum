@@ -10,8 +10,16 @@
 
 ## 技术栈
 
-- **前端** `frontend/`：Vue 3 + TypeScript + Vite 6 + Element Plus（CSS 变量覆写）+ Pinia + Vue Router
-- **后端** `backend/`：Express 4 + TypeScript（Node 24 原生运行，无构建步骤）+ Zod + Prisma 6（锁定，勿升 7）+ MySQL 8 + Redis + Nodemailer
+- **前端** `frontend/`：Vue 3 + TypeScript + Vite 6 + Element Plus（CSS 变量覆写，含深色模式）+ Pinia + Vue Router + md-editor-v3 + GSAP + Socket.IO Client
+- **后端** `backend/`：Express 4 + TypeScript（Node 24 原生运行，无构建步骤）+ Zod + Prisma 6（锁定，勿升 7）+ MySQL 8（ngram 全文索引）+ Redis（限流/热榜/浏览去重）+ Socket.IO + Nodemailer
+
+## 已实现功能（第 1-6 步全部完成）
+
+- **账号**：教育邮箱白名单/邀请码注册、邮箱验证码（QQ SMTP）、登录失败锁定、JWT 双令牌轮换、昵称头像、忘记密码
+- **内容**：Markdown 发帖（图片粘贴上传、标签、匿名、草稿自动保存）、编辑历史（30 分钟免历史）、两级评论与楼中楼、采纳最佳答案、点赞收藏、板块页、首页最新/热门/精华/关注四种排序
+- **发现与治理**：ngram 全文搜索、标签广场与聚合页、用户主页（帖子/评论/收藏/点赞）、热榜（Redis ZSET 每 10 分钟重算）、敏感词过滤（BLOCK/REVIEW）、新账号沙箱（24h 内发帖先审后显）、内容频率限制、举报闭环与管理后台（看板/举报队列/内容管理含回收站/用户管理/敏感词库/审计日志）
+- **通知与体验**：Socket.IO 实时通知与未读角标、通知中心（类型筛选/批量已读）、关注与粉丝、等级经验徽章、投票问卷、深色模式、移动端适配（横滑板块、悬浮发帖按钮）
+- **课程库**：课程主页聚合讨论、结构化评分（综合/作业量/点名/推荐，提交即更新聚合）、编辑器关联课程、从课程页一键发帖
 
 ## 本地启动
 
@@ -23,15 +31,17 @@ cd backend
 npm install
 # 建库（仅首次；使用全新数据库，不复用已有库）
 mysql -uroot -p -e "CREATE DATABASE IF NOT EXISTS campus_forum CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
-npx prisma migrate dev   # 应用迁移（含 ngram 中文全文索引）
+npx prisma migrate dev   # 应用迁移（含 ngram 中文全文索引、投票表）
 npm run seed             # 种子数据
-npm run dev              # http://localhost:3000
+npm run dev              # http://localhost:3000（WebSocket 同端口）
 
 # 2) 前端（新终端）
 cd frontend
 npm install
-npm run dev              # http://localhost:5173（/api、/uploads 代理到 3000）
+npm run dev              # http://localhost:5173（/api、/uploads、/socket.io 代理到 3000）
 ```
+
+**邮件服务保护**：`backend/.env` 中 `TEST_MODE=1` 时验证码只写入 Redis、不实发邮件（自动化测试与日常开发用，避免频繁调用 QQ SMTP 触发封禁）。真实联调邮件时改为 `TEST_MODE=0`。生产环境必须为 `0`。
 
 ## 种子账号与测试
 
@@ -41,14 +51,20 @@ npm run dev              # http://localhost:5173（/api、/uploads 代理到 300
 | 演示用户（8 位） | 用户名见 `backend/prisma/seed.ts`，密码统一 `demo123456` |
 | 邀请码 | `CAMPUS2026`（100 次）、`XINSHENG88`（50 次） |
 
-- 注册流程：填邮箱 → 获取验证码（QQ 邮箱 SMTP 发送）→ 提交注册 → 邮箱验证页输入验证码完成认证（认证通过才能发帖评论，第 2 步启用该限制的入口）。
-- 后端冒烟测试：`cd backend && npm run smoke`（覆盖注册/验证码/登录锁定/改密/token 轮换/登出等 25 项）。
+- 注册流程：填邮箱 → 获取验证码 → 提交注册 → 邮箱验证页输入验证码完成认证（认证通过才能发帖评论）。
+- 后端冒烟测试：`cd backend && npm run smoke`（覆盖 1-5 步全链路 96 项断言；`TEST_MODE=1` 下不发送真实邮件）。
 
 ## 开发进度
 
 - [x] 第 1 步：骨架与账号（Prisma 模型与迁移、种子、注册登录 JWT、白名单与邀请码、设计令牌落地）
-- [ ] 第 2 步：内容闭环（发帖、评论、采纳、点赞收藏、板块页、首页排序）
-- [ ] 第 3 步：发现与治理（搜索、热榜、敏感词、限流沙箱、举报后台）
-- [ ] 第 4 步：通知与体验（Socket.IO、关注、等级徽章、移动端）
-- [ ] 第 5 步：课程库（差异化）
-- [ ] 第 6 步：视觉验收
+- [x] 第 2 步：内容闭环（发帖、评论、采纳、点赞收藏、板块页、首页排序）
+- [x] 第 3 步：发现与治理（搜索、热榜、敏感词、限流沙箱、举报后台）
+- [x] 第 4 步：通知与体验（Socket.IO、关注、等级徽章、投票、移动端、深色模式）
+- [x] 第 5 步：课程库（差异化）
+- [x] 第 6 步：视觉验收（状态矩阵、375/1180 断点无横向滚动、深色对比度、焦点环）
+
+## 已知注意事项
+
+- 全文索引依赖迁移中的 ngram 定义 + 启动时 `ensureFulltextIndex()` 幂等兜底；重跑种子后热榜 ZSET 会自动重算。
+- 深色模式下 Element Plus 变量在 `frontend/src/styles/element-override.css` 的 `html.dark` 段覆写（EP 自带 dark 变量会反超 `:root` 覆写）。
+- 上传目录 `backend/uploads/`（gitignored）。F 盘空间紧张，必要时将 `UPLOAD` 目录迁至 D 盘。
