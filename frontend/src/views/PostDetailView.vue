@@ -9,6 +9,7 @@ import ContentRenderer from '@/components/ContentRenderer.vue';
 import FlagBadge from '@/components/FlagBadge.vue';
 import BookmarkToggle from '@/components/BookmarkToggle.vue';
 import LikeToggle from '@/components/LikeToggle.vue';
+import ReportDialog from '@/components/ReportDialog.vue';
 import UserLink from '@/components/UserLink.vue';
 import { acceptComment, createComment, deletePost, fetchBoards, fetchComments, fetchPost } from '@/api/content';
 import { useEntrance } from '@/composables/useEntrance';
@@ -37,6 +38,7 @@ const loading = ref(true);
 const loadError = ref(false);
 
 const replyTarget = ref<CommentNode | null>(null);
+const reportVisible = ref(false);
 
 const isAuthor = computed(() => session.user && post.value && (post.value.authorSafe?.id === session.user.id || (!post.value.isAnonymous && post.value.author?.id === session.user.id)));
 const canAccept = computed(() => Boolean(isAuthor.value) && post.value?.acceptedComment === null);
@@ -181,9 +183,25 @@ onMounted(load);
           <div class="post-actions">
             <LikeToggle target-type="POST" :target-id="post.id" :liked="post.viewerLiked" :count="post.likeCount" />
             <BookmarkToggle :post-id="post.id" :bookmarked="post.viewerBookmarked" :count="post.bookmarkCount" />
+            <el-button
+              v-if="session.user && !isAuthor"
+              size="small"
+              text
+              type="danger"
+              @click="reportVisible = true"
+            >
+              举报
+            </el-button>
             <span class="tw-meta">浏览 {{ formatCount(post.viewCount) }}</span>
           </div>
         </article>
+
+        <ReportDialog
+          v-model:visible="reportVisible"
+          target-type="POST"
+          :target-id="post.id"
+          :target-label="post.title"
+        />
 
         <!-- 采纳答案块（设计规范 §4.3） -->
         <section v-if="post.acceptedComment" class="accepted-block">

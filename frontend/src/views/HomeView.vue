@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import BoardTree from '@/components/BoardTree.vue';
 import EmptyState from '@/components/EmptyState.vue';
+import HotPanel from '@/components/HotPanel.vue';
 import PostItem from '@/components/PostItem.vue';
 import PostSkeleton from '@/components/PostSkeleton.vue';
 import SortBar from '@/components/SortBar.vue';
@@ -162,6 +163,7 @@ const activeBoard = computed(() => boards.value.find((b) => b.slug === boardSlug
     </main>
 
     <aside class="col-right rail">
+      <HotPanel />
       <section class="panel">
         <h3 class="panel-title">社区数据</h3>
         <ul v-if="stats" class="stat-list">
