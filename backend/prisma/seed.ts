@@ -130,8 +130,8 @@ async function main(): Promise<void> {
     });
   }
 
-  // ---- 种子图片（来自设计稿资产，落盘到 uploads/seed 供帖子引用） ----
-  const seedImgDir = path.resolve(import.meta.dirname, '../../uploads/seed');
+  // ---- 种子图片（来自设计稿资产，落盘到 backend/uploads/seed 供帖子引用） ----
+  const seedImgDir = path.resolve(import.meta.dirname, '../uploads/seed');
   const designImgDir = path.resolve(import.meta.dirname, '../../design/assets/img');
   mkdirSync(seedImgDir, { recursive: true });
   for (const img of ['ml-lecture-hall.jpg', 'library-stacks.jpg']) {
