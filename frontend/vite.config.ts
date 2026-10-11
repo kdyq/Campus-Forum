@@ -24,8 +24,9 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://localhost:3000',
-      '/uploads': 'http://localhost:3000',
+      '/api': 'http://localhost:3100',
+      '/uploads': 'http://localhost:3100',
+      '/socket.io': { target: 'http://localhost:3100', ws: true },
     },
   },
 });

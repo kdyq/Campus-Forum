@@ -33,12 +33,12 @@ npm install
 mysql -uroot -p -e "CREATE DATABASE IF NOT EXISTS campus_forum CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;"
 npx prisma migrate dev   # 应用迁移（含 ngram 中文全文索引、投票表）
 npm run seed             # 种子数据
-npm run dev              # http://localhost:3000（WebSocket 同端口）
+npm run dev              # http://localhost:3100（WebSocket 同端口；本机 3000 常被占用，故用 3100）
 
 # 2) 前端（新终端）
 cd frontend
 npm install
-npm run dev              # http://localhost:5173（/api、/uploads、/socket.io 代理到 3000）
+npm run dev              # http://localhost:5173（/api、/uploads、/socket.io 代理到 3100）
 ```
 
 **邮件服务保护**：`backend/.env` 中 `TEST_MODE=1` 时验证码只写入 Redis、不实发邮件（自动化测试与日常开发用，避免频繁调用 QQ SMTP 触发封禁）。真实联调邮件时改为 `TEST_MODE=0`。生产环境必须为 `0`。

@@ -5,7 +5,7 @@
  */
 import Redis from 'ioredis';
 
-const BASE = process.env.SMOKE_BASE_URL ?? 'http://localhost:3000/api';
+const BASE = process.env.SMOKE_BASE_URL ?? 'http://localhost:3100/api';
 const redis = new Redis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6379');
 const stamp = String(Date.now()).slice(-8);
 
