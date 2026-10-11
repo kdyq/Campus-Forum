@@ -1,0 +1,87 @@
+/* 账号页共用布局（登录 / 注册 / 邮箱验证 / 忘记密码） */
+.auth-page {
+  min-height: calc(100vh - var(--tw-topbar-h));
+  display: grid;
+  place-items: center;
+  padding: 40px 18px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--tw-surface);
+  border: 1px solid var(--tw-line);
+  border-radius: var(--tw-r-card);
+  padding: 32px 30px;
+}
+
+.auth-card--wide {
+  max-width: 480px;
+}
+
+.auth-title {
+  margin: 0 0 4px;
+  font-size: var(--tw-fs-title-lg);
+  line-height: var(--tw-lh-title-lg);
+  font-weight: 600;
+  color: var(--tw-ink);
+}
+
+.auth-sub {
+  margin: 0 0 22px;
+  font-size: var(--tw-fs-body-sm);
+  color: var(--tw-ink-2);
+}
+
+.auth-form .el-form-item {
+  margin-bottom: 16px;
+}
+
+.auth-error {
+  margin-bottom: 14px;
+}
+
+.auth-links {
+  margin-top: 18px;
+  font-size: var(--tw-fs-body-sm);
+  color: var(--tw-ink-2);
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-links a {
+  color: var(--tw-accent);
+}
+
+.auth-links a:hover {
+  color: var(--tw-accent-ink);
+}
+
+.submit-btn {
+  width: 100%;
+  height: 40px;
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+.code-row {
+  display: flex;
+  gap: 8px;
+}
+
+.code-row .el-input {
+  flex: 1;
+}
+
+.code-btn {
+  flex: none;
+  width: 118px;
+}
+
+.field-help {
+  font-size: 12.5px;
+  color: var(--tw-ink-3);
+  line-height: 1.5;
+  margin-top: 4px;
+}
