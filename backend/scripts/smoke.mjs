@@ -375,6 +375,39 @@ async function main() {
   const ulikes = await call('/users/me/likes', { token: smokeToken });
   check('我的点赞列表可用', typeof ulikes.body?.data?.total === 'number');
 
+  // ========== 第 4 步：通知与体验 ==========
+  // 关注
+  const f1 = await call('/follows', { method: 'POST', token: smokeToken, body: { targetType: 'USER', targetId: adminId } });
+  check('关注用户成功', f1.body?.code === 0, JSON.stringify(f1.body));
+  const fSelf = await call('/follows', { method: 'POST', token: smokeToken, body: { targetType: 'USER', targetId: smokeUserId } });
+  check('关注自己被拒(40003)', fSelf.body?.code === 40003);
+  const fstate = await call(`/follows/state/USER/${adminId}`, { token: smokeToken });
+  check('关注状态查询', fstate.body?.data?.following === true);
+  const ffeed = await call('/feed/following', { token: smokeToken });
+  check('关注流返回被关注者的帖子', (ffeed.body?.data?.items ?? []).some((i) => i.id === postId), JSON.stringify(ffeed.body?.data?.items?.slice(0, 1)));
+
+  // 投票
+  const pollCreate = await call(`/posts/${postId}/poll`, {
+    method: 'POST',
+    token: adminToken,
+    body: { question: '冒烟投票：哪种测试最有价值？', options: ['单元测试', '集成测试', '端到端测试'], multiple: false },
+  });
+  check('投票创建成功', pollCreate.body?.code === 0, JSON.stringify(pollCreate.body));
+  const vote = await call(`/polls/${pollCreate.body?.data?.id}/vote`, { method: 'POST', token: smokeToken, body: { choices: [1] } });
+  check('投票成功且结果聚合', vote.body?.code === 0 && vote.body?.data?.totalVotes === 1 && vote.body?.data?.options?.[0]?.count === 1, JSON.stringify(vote.body));
+  const detailPoll = await call(`/posts/${postId}`, { token: smokeToken });
+  check('帖子详情包含投票与我的选择', detailPoll.body?.data?.poll?.id === pollCreate.body?.data?.id && (detailPoll.body?.data?.poll?.myChoices ?? []).length === 1);
+
+  // 通知（关注产生 FOLLOW，举报处理产生 MODERATION 回执）
+  const notif = await call('/notifications', { token: smokeToken });
+  check('通知列表返回且非空', notif.body?.code === 0 && (notif.body?.data?.items ?? []).length > 0, JSON.stringify(notif.body?.data?.total));
+  const notifAdmin = await call('/notifications', { token: adminToken });
+  check('管理员收到互动通知', (notifAdmin.body?.data?.items ?? []).length > 0);
+  const unread0 = await call('/notifications/unread-count', { token: smokeToken });
+  check('未读数接口可用', typeof unread0.body?.data?.count === 'number');
+  const markRead = await call('/notifications/read', { method: 'POST', token: smokeToken, body: { all: true } });
+  check('批量已读后未读清零', markRead.body?.code === 0 && markRead.body?.data?.count === 0, JSON.stringify(markRead.body));
+
   console.log(`\n结果：${passed} 通过，${failed} 失败`);
   process.exitCode = failed > 0 ? 1 : 0;
 }

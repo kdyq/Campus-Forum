@@ -50,6 +50,7 @@ model User {
   auditLogs            AuditLog[]
   moderatedBoards      Board[]          @relation("BoardModerators")
   createdAnnouncements Announcement[]   @relation("AnnouncementAuthor")
+  pollVotes            PollVote[]
 
   @@index([status])
   @@index([createdAt])
@@ -147,6 +148,7 @@ model Post {
   tags            PostTag[]
   bookmarks       Bookmark[]
   views           View[]
+  poll            Poll?
 
   @@index([boardId, lastActivityAt])
   @@index([authorId, createdAt])
@@ -386,4 +388,34 @@ model Announcement {
   createdBy User? @relation("AnnouncementAuthor", fields: [createdById], references: [id])
 
   @@index([type, startsAt, endsAt])
+}
+
+// 投票问卷（第 4 步）：一帖一票，选项 JSON 存储，投票选择 JSON 存储
+model Poll {
+  id        Int       @id @default(autoincrement())
+  postId    Int       @unique
+  question  String    @db.VarChar(120)
+  options   Json // [{ id: number, text: string }]
+  multiple  Boolean   @default(false)
+  closesAt  DateTime?
+  createdAt DateTime  @default(now())
+
+  post  Post       @relation(fields: [postId], references: [id])
+  votes PollVote[]
+
+  @@index([postId])
+}
+
+model PollVote {
+  id        Int      @id @default(autoincrement())
+  pollId    Int
+  userId    Int
+  choices   Json // 选项 id 数组
+  createdAt DateTime @default(now())
+
+  poll Poll @relation(fields: [pollId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([pollId, userId])
+  @@index([userId])
 }

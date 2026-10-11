@@ -3,6 +3,7 @@ import type { SafeUser } from '../types/safe-user.ts';
 import { AppError, CODES } from '../constants/codes.ts';
 import { prisma } from '../utils/prisma.ts';
 import { ROLES } from '../constants/enums.ts';
+import { followerCount, isFollowing } from './follow.service.ts';
 
 const PUBLIC_SELECT = {
   id: true,
@@ -37,6 +38,10 @@ export async function getProfile(username: string, viewer: SafeUser | null | und
 
   const isSelf = viewer?.id === user.id;
   const isModerator = viewer?.role === ROLES.SUPER_ADMIN || viewer?.role === ROLES.MODERATOR;
+  const [followers, followingState] = await Promise.all([
+    followerCount(user.id),
+    viewer && !isSelf ? isFollowing(viewer.id, 'USER', user.id) : Promise.resolve(false),
+  ]);
 
   return {
     ...user,
@@ -47,8 +52,10 @@ export async function getProfile(username: string, viewer: SafeUser | null | und
       likeReceived: likeReceived._sum.likeCount ?? 0,
       acceptedCount,
       bookmarkCount,
+      followers,
     },
     isSelf,
+    viewerFollowing: followingState,
   };
 }
 

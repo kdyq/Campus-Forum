@@ -26,6 +26,8 @@ function num(name: string, fallback: number): number {
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: num('PORT', 3000),
+  // 开发/测试模式：验证码只落 Redis 不实发邮件（保护 QQ 邮箱额度，避免封禁；生产必须为 0）
+  testMode: process.env.TEST_MODE === '1',
   corsOrigin: (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
     .split(',')
     .map((s) => s.trim())

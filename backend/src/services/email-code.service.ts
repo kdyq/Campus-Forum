@@ -1,5 +1,6 @@
 // 邮箱验证码：签发（限流 + 落 Redis + 发邮件）与核销
 import { randomInt } from 'node:crypto';
+import { env } from '../config/env.ts';
 import { AppError, CODES } from '../constants/codes.ts';
 import { hitLimit } from '../utils/limiter.ts';
 import { redis } from '../utils/redis.ts';
@@ -27,6 +28,11 @@ export async function sendEmailCode(scene: CodeScene, email: string, ip: string)
 
   const code = String(randomInt(100000, 1000000));
   await redis.set(`vcode:${scene}:${email}`, code, 'EX', CODE_TTL_SEC);
+  if (env.testMode) {
+    // 测试模式：不实发邮件（保护邮箱服务额度），验证码仅在 Redis 中供测试读取
+    logger.info(`[TEST_MODE] ${scene} 验证码未实发 → ${email} code=${code}`);
+    return;
+  }
   try {
     await sendVerificationCode(email, code, scene);
   } catch (err) {

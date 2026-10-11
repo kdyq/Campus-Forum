@@ -13,6 +13,7 @@ import * as discoverController from '../controllers/discover.controller.ts';
 import * as profileController from '../controllers/profile.controller.ts';
 import * as reportController from '../controllers/report.controller.ts';
 import * as adminController from '../controllers/admin.controller.ts';
+import * as socialController from '../controllers/social.controller.ts';
 import { requireAuth, requireVerified, requireAdmin, optionalAuth } from '../middlewares/auth.ts';
 import { rateLimit } from '../middlewares/rateLimit.ts';
 import { postLimit, commentLimit, likeLimit, bookmarkLimit, reportLimit, imageUploadLimit } from '../middlewares/contentLimit.ts';
@@ -97,6 +98,23 @@ apiRouter.post('/admin/tags', requireAdmin, asyncHandler(adminController.createT
 apiRouter.get('/admin/sensitive-words', requireAdmin, asyncHandler(adminController.listWordsHandler));
 apiRouter.post('/admin/sensitive-words', requireAdmin, asyncHandler(adminController.addWordHandler));
 apiRouter.delete('/admin/sensitive-words/:id(\\d+)', requireAdmin, asyncHandler(adminController.removeWordHandler));
+
+// ---- 通知 ----
+apiRouter.get('/notifications', requireAuth, asyncHandler(socialController.notificationListHandler));
+apiRouter.get('/notifications/unread-count', requireAuth, asyncHandler(socialController.unreadCountHandler));
+apiRouter.post('/notifications/read', requireAuth, asyncHandler(socialController.markReadHandler));
+
+// ---- 关注 ----
+apiRouter.post('/follows', requireVerified, asyncHandler(socialController.followHandler));
+apiRouter.delete('/follows/:targetType/:targetId(\\d+)', requireVerified, asyncHandler(socialController.unfollowHandler));
+apiRouter.get('/follows/state/:targetType/:targetId(\\d+)', requireAuth, asyncHandler(socialController.followingStateHandler));
+apiRouter.get('/follows/my', requireAuth, asyncHandler(socialController.myFollowsHandler));
+apiRouter.get('/feed/following', requireAuth, asyncHandler(socialController.followingFeedHandler));
+
+// ---- 投票 ----
+apiRouter.post('/posts/:id(\\d+)/poll', requireVerified, asyncHandler(socialController.createPollHandler));
+apiRouter.get('/posts/:id(\\d+)/poll', optionalAuth, asyncHandler(socialController.getPollHandler));
+apiRouter.post('/polls/:pollId(\\d+)/vote', requireVerified, asyncHandler(socialController.voteHandler));
 
 // ---- 路由兜底 ----
 apiRouter.use((_req, res) => {

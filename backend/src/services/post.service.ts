@@ -7,6 +7,7 @@ import { safeUserSelect, type SafeUser } from '../types/safe-user.ts';
 import { expDelta, EXP_GAIN } from '../utils/level.ts';
 import { notify } from './notification.service.ts';
 import { checkSensitive } from './sensitive.service.ts';
+import { getPollForPost } from './poll.service.ts';
 
 const SANDBOX_MS = 24 * 3600 * 1000; // 新账号 24h 内发帖先审后显
 
@@ -249,12 +250,13 @@ export async function getPostDetail(id: number, viewer: SafeUser | null | undefi
   });
   if (!post) throw new AppError(CODES.POST_NOT_FOUND, '帖子不存在或已删除', 404);
 
-  const [likes, bookmarks] = viewer
-    ? await Promise.all([
-        prisma.like.findFirst({ where: { userId: viewer.id, targetType: 'POST', targetId: id }, select: { id: true } }),
-        prisma.bookmark.findFirst({ where: { userId: viewer.id, postId: id }, select: { id: true } }),
-      ])
-    : [null, null];
+  const [likes, bookmarks, poll] = await Promise.all([
+    viewer
+      ? prisma.like.findFirst({ where: { userId: viewer.id, targetType: 'POST', targetId: id }, select: { id: true } })
+      : Promise.resolve(null),
+    viewer ? prisma.bookmark.findFirst({ where: { userId: viewer.id, postId: id }, select: { id: true } }) : Promise.resolve(null),
+    getPollForPost(id, viewer),
+  ]);
 
   const authorVisible = !post.isAnonymous || canSeeRealAuthor(viewer);
   return {
@@ -277,6 +279,7 @@ export async function getPostDetail(id: number, viewer: SafeUser | null | undefi
       : null,
     authorVisible,
     authorSafe: authorVisible ? post.author : null,
+    poll,
   };
 }
 
