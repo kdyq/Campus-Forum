@@ -1,13 +1,34 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
+import NotificationBell from '@/components/NotificationBell.vue';
 import UserAvatar from '@/components/UserAvatar.vue';
+import { useNotificationStore } from '@/stores/notification';
 import { useSessionStore } from '@/stores/session';
 
 const session = useSessionStore();
 const router = useRouter();
 const searchWord = ref('');
+const notificationStore = useNotificationStore();
+
+const isDark = ref(document.documentElement.dataset.theme === 'dark');
+
+function toggleTheme() {
+  isDark.value = !isDark.value;
+  document.documentElement.dataset.theme = isDark.value ? 'dark' : 'light';
+  document.documentElement.classList.toggle('dark', isDark.value);
+  localStorage.setItem('tc-theme', isDark.value ? 'dark' : 'light');
+}
+
+watch(
+  () => session.user?.id,
+  (id) => {
+    if (id) void notificationStore.connect();
+    else notificationStore.reset();
+  },
+  { immediate: true },
+);
 
 function onSearch() {
   const q = searchWord.value.trim();
@@ -51,6 +72,7 @@ const isAdmin = () => {
           </form>
           <div class="actions">
             <template v-if="session.user">
+              <NotificationBell />
               <RouterLink to="/p/new" class="new-post-link">
                 <el-button type="primary">发帖</el-button>
               </RouterLink>
@@ -83,10 +105,23 @@ const isAdmin = () => {
               <RouterLink to="/login"><el-button text>登录</el-button></RouterLink>
               <RouterLink to="/register"><el-button type="primary">注册</el-button></RouterLink>
             </template>
+            <button
+              type="button"
+              class="theme-toggle"
+              :aria-label="isDark ? '切换到浅色模式' : '切换到深色模式'"
+              :title="isDark ? '浅色模式' : '深色模式'"
+              @click="toggleTheme"
+            >
+              {{ isDark ? '☀' : '☾' }}
+            </button>
           </div>
         </div>
       </header>
       <RouterView />
+      <!-- 移动端悬浮发帖按钮（设计规范 §7） -->
+      <RouterLink v-if="session.user?.emailVerified" to="/p/new" class="mobile-fab" aria-label="发帖">
+        ＋
+      </RouterLink>
     </div>
   </el-config-provider>
 </template>
@@ -253,5 +288,47 @@ const isAdmin = () => {
   border-radius: var(--tw-r-full);
   background: var(--tw-warning);
   border: 2px solid var(--tw-surface);
+}
+.theme-toggle {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--tw-r-ctrl);
+  color: var(--tw-ink-2);
+  font-size: 16px;
+  transition: background var(--tw-dur-fast) var(--tw-ease-out), color var(--tw-dur-fast) var(--tw-ease-out);
+}
+
+.theme-toggle:hover {
+  background: var(--tw-surface-2);
+  color: var(--tw-ink);
+}
+
+.mobile-fab {
+  display: none;
+  position: fixed;
+  right: 18px;
+  bottom: 28px;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--tw-r-full);
+  background: var(--tw-accent);
+  color: var(--tw-btn-on-accent);
+  font-size: 26px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--tw-e3);
+  z-index: var(--tw-z-drawer);
+}
+
+@media (max-width: 640px) {
+  .mobile-fab {
+    display: inline-flex;
+  }
+
+  .new-post-link {
+    display: none;
+  }
 }
 </style>

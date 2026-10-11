@@ -8,6 +8,7 @@ import PostItem from '@/components/PostItem.vue';
 import PostSkeleton from '@/components/PostSkeleton.vue';
 import SortBar from '@/components/SortBar.vue';
 import { fetchBoards, fetchFeed, fetchStats } from '@/api/content';
+import { api } from '@/api/client';
 import { useEntrance } from '@/composables/useEntrance';
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll';
 import { useSessionStore } from '@/stores/session';
@@ -16,6 +17,7 @@ import type { BoardItem, FeedItem, SiteStats } from '@/types/content';
 const route = useRoute();
 const session = useSessionStore();
 const rootRef = ref<HTMLElement | null>(null);
+const followingTip = ref(false);
 
 useEntrance(rootRef, {
   tree: '.col-left',
@@ -40,7 +42,55 @@ const SORT_OPTIONS = [
   { value: 'latest', label: '最新' },
   { value: 'hot', label: '热门' },
   { value: 'featured', label: '精华' },
+  { value: 'following', label: '关注' },
 ];
+
+async function fetchPage(params: { board?: string; sort: string; cursor?: string; limit: number }) {
+  if (params.sort === 'following') {
+    if (!session.user) {
+      followingTip.value = true;
+      return { items: [] as FeedItem[], nextCursor: null };
+    }
+    followingTip.value = false;
+    const query = new URLSearchParams();
+    if (params.cursor) query.set('cursor', params.cursor);
+    query.set('limit', String(params.limit));
+    const { data } = await api.get(`/feed/following?${query.toString()}`);
+    const raw = (data?.data?.items ?? []) as Array<Record<string, unknown>>;
+    const items: FeedItem[] = raw.map((r) => ({
+      id: r.id as number,
+      title: r.title as string,
+      excerpt: r.excerpt as string | null,
+      board: r.board as FeedItem['board'],
+      author: r.author as FeedItem['author'],
+      isAnonymous: false,
+      realAuthorVisible: false,
+      realAuthor: null,
+      status: 'NORMAL',
+      isPinned: false,
+      isFeatured: false,
+      viewCount: r.viewCount as number,
+      likeCount: r.likeCount as number,
+      commentCount: r.commentCount as number,
+      bookmarkCount: 0,
+      hasAccepted: false,
+      thumbnailUrl: null,
+      tags: [],
+      createdAt: r.createdAt as string,
+      lastActivityAt: r.lastActivityAt as string,
+      viewerLiked: false,
+      viewerBookmarked: false,
+    }));
+    return { items, nextCursor: data?.data?.nextCursor ?? null };
+  }
+  followingTip.value = false;
+  return fetchFeed({
+    board: params.board,
+    sort: params.sort as 'latest' | 'hot' | 'featured',
+    cursor: params.cursor,
+    limit: params.limit,
+  });
+}
 
 const { sentinelRef } = useInfiniteScroll(() => {
   void loadMore();
@@ -69,11 +119,7 @@ async function reset() {
   items.value = [];
   cursor.value = null;
   try {
-    const result = await fetchFeed({
-      board: boardSlug.value || undefined,
-      sort: sort.value,
-      limit: 20,
-    });
+    const result = await fetchPage({ board: boardSlug.value || undefined, sort: sort.value, limit: 20 });
     items.value = result.items;
     cursor.value = result.nextCursor;
     finished.value = result.nextCursor === null;
@@ -88,12 +134,7 @@ async function loadMore() {
   if (finished.value || loadingMore.value || loading.value || !cursor.value) return;
   loadingMore.value = true;
   try {
-    const result = await fetchFeed({
-      board: boardSlug.value || undefined,
-      sort: sort.value,
-      limit: 20,
-      cursor: cursor.value,
-    });
+    const result = await fetchPage({ board: boardSlug.value || undefined, sort: sort.value, cursor: cursor.value, limit: 20 });
     items.value = [...items.value, ...result.items];
     cursor.value = result.nextCursor;
     finished.value = result.nextCursor === null;
@@ -129,6 +170,8 @@ const activeBoard = computed(() => boards.value.find((b) => b.slug === boardSlug
           {{ activeBoard ? `${activeBoard.name} · ${activeBoard.postCount} 帖` : '' }}
         </span>
       </SortBar>
+
+      <p v-if="followingTip" class="following-tip">登录后即可查看关注的人的最新动态</p>
 
       <div v-if="loading" class="feed">
         <PostSkeleton :rows="6" />
@@ -228,6 +271,16 @@ const activeBoard = computed(() => boards.value.find((b) => b.slug === boardSlug
 
 .count {
   font-size: 12px;
+}
+
+.following-tip {
+  margin: 0 0 12px;
+  font-size: var(--tw-fs-caption);
+  color: var(--tw-ink-3);
+  background: var(--tw-surface);
+  border: 1px dashed var(--tw-line);
+  border-radius: var(--tw-r-ctrl);
+  padding: 12px 16px;
 }
 
 .sentinel {

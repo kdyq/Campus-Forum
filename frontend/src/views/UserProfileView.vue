@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import EmptyState from '@/components/EmptyState.vue';
+import FollowButton from '@/components/FollowButton.vue';
 import UserAvatar from '@/components/UserAvatar.vue';
 import { fetchMyLikedPosts, fetchProfile, fetchUserComments, fetchUserPosts, type UserProfile } from '@/api/admin';
 import { fetchBookmarks } from '@/api/content';
@@ -100,6 +101,7 @@ onMounted(() => {
             <div class="profile-name-row">
               <h1 class="profile-name">{{ profile.displayName }}</h1>
               <span class="level-badge">Lv.{{ profile.level }}</span>
+              <FollowButton v-if="!profile.isSelf" target-type="USER" :target-id="profile.id" />
               <span v-if="profile.role === 'SUPER_ADMIN'" class="role-badge admin">站长</span>
               <span v-else-if="profile.role === 'MODERATOR'" class="role-badge mod">版主</span>
               <span v-if="profile.status === 'MUTED'" class="role-badge muted">已禁言</span>
@@ -121,6 +123,7 @@ onMounted(() => {
             <div><dt>评论</dt><dd>{{ profile.stats.commentCount }}</dd></div>
             <div><dt>获赞</dt><dd>{{ profile.stats.likeReceived }}</dd></div>
             <div><dt>采纳</dt><dd>{{ profile.stats.acceptedCount }}</dd></div>
+            <div><dt>粉丝</dt><dd>{{ profile.stats.followers ?? 0 }}</dd></div>
           </dl>
         </div>
       </section>

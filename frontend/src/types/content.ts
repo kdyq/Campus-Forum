@@ -49,6 +49,16 @@ export interface PostDetail extends FeedItem {
   editedAt: string | null;
   editCount: number;
   courseId: number | null;
+  poll: {
+    id: number;
+    question: string;
+    multiple: boolean;
+    closed: boolean;
+    closesAt: string | null;
+    options: { id: number; text: string; count: number; percent: number }[];
+    totalVotes: number;
+    myChoices: number[];
+  } | null;
   course: { id: number; name: string; code: string; teacher: string | null; department: string | null } | null;
   acceptedComment: {
     id: number;

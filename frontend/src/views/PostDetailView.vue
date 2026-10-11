@@ -9,6 +9,7 @@ import ContentRenderer from '@/components/ContentRenderer.vue';
 import FlagBadge from '@/components/FlagBadge.vue';
 import BookmarkToggle from '@/components/BookmarkToggle.vue';
 import LikeToggle from '@/components/LikeToggle.vue';
+import PollBox from '@/components/PollBox.vue';
 import ReportDialog from '@/components/ReportDialog.vue';
 import UserLink from '@/components/UserLink.vue';
 import { acceptComment, createComment, deletePost, fetchBoards, fetchComments, fetchPost } from '@/api/content';
@@ -179,6 +180,8 @@ onMounted(load);
           </div>
 
           <ContentRenderer :content="post.content" />
+
+          <PollBox v-if="post.poll" :poll="post.poll" :key="post.poll.totalVotes" />
 
           <div class="post-actions">
             <LikeToggle target-type="POST" :target-id="post.id" :liked="post.viewerLiked" :count="post.likeCount" />

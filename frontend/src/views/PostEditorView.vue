@@ -6,6 +6,7 @@ import { MdEditor } from 'md-editor-v3';
 import 'md-editor-v3/lib/style.css';
 import BoardTree from '@/components/BoardTree.vue';
 import { createPost, fetchBoards, fetchDraft, fetchPost, fetchTags, saveDraft, updatePost, uploadImage, clearDraft, deletePost } from '@/api/content';
+import { api } from '@/api/client';
 import { useSessionStore } from '@/stores/session';
 import { timeAgo } from '@/utils/format';
 import type { BoardItem, TagItem } from '@/types/content';
@@ -30,6 +31,14 @@ const form = reactive({
   content: '',
   isAnonymous: false,
   tagIds: [] as number[],
+});
+
+// 投票（可选）：发布时随帖子创建
+const pollEnabled = ref(false);
+const poll = reactive({
+  question: '',
+  options: ['', ''],
+  multiple: false,
 });
 
 const titleHelp = computed(() => `${form.title.length}/80`);
@@ -135,6 +144,20 @@ async function submit() {
         isAnonymous: form.isAnonymous,
         tagIds: form.tagIds,
       });
+      if (pollEnabled.value && poll.question.trim()) {
+        const options = poll.options.map((o) => o.trim()).filter(Boolean);
+        if (options.length >= 2) {
+          try {
+            await api.post(`/posts/${result.id}/poll`, {
+              question: poll.question.trim(),
+              options,
+              multiple: poll.multiple,
+            });
+          } catch {
+            ElMessage.warning('帖子已发布，但投票创建失败');
+          }
+        }
+      }
       await clearDraft();
       ElMessage.success('发布成功');
       router.replace({ name: 'post-detail', params: { id: result.id } });
@@ -225,6 +248,23 @@ void load();
           <el-switch id="anon-switch" v-model="form.isAnonymous" />
         </div>
         <p class="field-help">匿名帖对外显示「匿名用户」，管理员可在后台追溯真实作者。</p>
+        <div v-if="!isEdit" class="field">
+          <div class="field-row">
+            <label class="field-label" for="poll-switch">发起投票</label>
+            <el-switch id="poll-switch" v-model="pollEnabled" />
+          </div>
+          <template v-if="pollEnabled">
+            <el-input v-model="poll.question" class="poll-question-input" placeholder="投票问题" maxlength="120" style="margin-top: 8px" />
+            <div v-for="(_, i) in poll.options" :key="i" class="poll-option-row">
+              <el-input v-model="poll.options[i]" :placeholder="`选项 ${i + 1}`" maxlength="40" />
+              <el-button v-if="poll.options.length > 2" text type="danger" @click="poll.options.splice(i, 1)">删</el-button>
+            </div>
+            <div class="poll-ops">
+              <el-button v-if="poll.options.length < 6" size="small" text type="primary" @click="poll.options.push('')">+ 加选项</el-button>
+              <el-checkbox v-model="poll.multiple" size="small">允许多选</el-checkbox>
+            </div>
+          </template>
+        </div>
         <div class="submit-row">
           <el-button type="primary" class="submit-btn" :loading="submitting" @click="submit">
             {{ isEdit ? '保存修改' : '发布' }}
@@ -343,6 +383,23 @@ void load();
   color: var(--tw-ink-3);
   line-height: 1.5;
   margin: 6px 0 0;
+}
+
+.poll-question-input {
+  margin-bottom: 8px;
+}
+
+.poll-option-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.poll-ops {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .submit-row {

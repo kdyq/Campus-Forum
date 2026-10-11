@@ -24,8 +24,10 @@ export interface UserProfile {
     likeReceived: number;
     acceptedCount: number;
     bookmarkCount: number;
+    followers?: number;
   };
   isSelf: boolean;
+  viewerFollowing?: boolean;
 }
 
 export function fetchProfile(username: string): Promise<UserProfile> {
