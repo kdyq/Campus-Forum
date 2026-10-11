@@ -55,6 +55,7 @@ async function main(): Promise<void> {
       emailVerified: true, // 默认邮箱已认证
       role: ROLES.SUPER_ADMIN,
       bio: '教务处 · 社区管理员',
+      createdAt: hoursAgo(24 * 120), // 老账号，不受新账号沙箱影响
     },
   });
 
@@ -124,10 +125,18 @@ async function main(): Promise<void> {
     { username: 'lumingchuan', displayName: '陆铭川', college: '机械工程学院', grade: '2024级', major: '机械设计制造及其自动化', level: 1, exp: 40, bio: '刚入学，一切都很新鲜' },
   ];
   const users: Record<string, { id: number }> = { guo: { id: guo.id } };
+  let userIndex = 0;
   for (const u of userDefs) {
     users[u.username] = await prisma.user.create({
-      data: { ...u, passwordHash: demoHash, email: `${u.username}@stu.campus.edu.cn`, emailVerified: true },
+      data: {
+        ...u,
+        passwordHash: demoHash,
+        email: `${u.username}@stu.campus.edu.cn`,
+        emailVerified: true,
+        createdAt: hoursAgo(24 * (30 + userIndex * 15)), // 依次向前推 15 天，均为老账号
+      },
     });
+    userIndex++;
   }
 
   // ---- 种子图片（来自设计稿资产，落盘到 backend/uploads/seed 供帖子引用） ----
@@ -389,6 +398,19 @@ async function main(): Promise<void> {
   await prisma.tag.update({ where: { slug: 'dormitory' }, data: { postCount: { increment: 1 } } });
   await prisma.tag.update({ where: { slug: 'club-recruit' }, data: { postCount: { increment: 1 } } });
   await prisma.tag.update({ where: { slug: 'club' }, data: { postCount: { increment: 1 } } });
+
+  // ---- 敏感词（示例词库：商业 spam 为主，BLOCK 直接拦截、REVIEW 转人工审核） ----
+  await prisma.sensitiveWord.createMany({
+    data: [
+      { word: '代刷', level: 'BLOCK' },
+      { word: '刷单', level: 'BLOCK' },
+      { word: '兼职日结', level: 'BLOCK' },
+      { word: '博彩', level: 'BLOCK' },
+      { word: '贷款包过', level: 'BLOCK' },
+      { word: '加V', level: 'REVIEW' },
+      { word: '广告', level: 'REVIEW' },
+    ],
+  });
 
   await ensureFulltextIndex();
   console.log('种子数据完成：超管 guo、7 板块、12 标签、3 课程、8 演示用户、9 帖子、7 评论、10 点赞');

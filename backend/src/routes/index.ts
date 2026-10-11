@@ -9,8 +9,13 @@ import * as commentController from '../controllers/comment.controller.ts';
 import * as interactController from '../controllers/interact.controller.ts';
 import * as draftController from '../controllers/draft.controller.ts';
 import * as miscController from '../controllers/misc.controller.ts';
-import { requireAuth, requireVerified, optionalAuth } from '../middlewares/auth.ts';
+import * as discoverController from '../controllers/discover.controller.ts';
+import * as profileController from '../controllers/profile.controller.ts';
+import * as reportController from '../controllers/report.controller.ts';
+import * as adminController from '../controllers/admin.controller.ts';
+import { requireAuth, requireVerified, requireAdmin, optionalAuth } from '../middlewares/auth.ts';
 import { rateLimit } from '../middlewares/rateLimit.ts';
+import { postLimit, commentLimit, likeLimit, bookmarkLimit, reportLimit, imageUploadLimit } from '../middlewares/contentLimit.ts';
 import { avatarUpload, postImageUpload } from '../middlewares/upload.ts';
 import { asyncHandler } from '../utils/asyncHandler.ts';
 
@@ -39,19 +44,19 @@ apiRouter.get('/stats', asyncHandler(miscController.statsHandler));
 
 // ---- 帖子 ----
 apiRouter.get('/posts', optionalAuth, asyncHandler(postController.listHandler));
-apiRouter.post('/posts', requireVerified, asyncHandler(postController.createHandler));
+apiRouter.post('/posts', requireVerified, postLimit(), asyncHandler(postController.createHandler));
 apiRouter.get('/posts/:id(\\d+)', optionalAuth, asyncHandler(postController.detailHandler));
 apiRouter.patch('/posts/:id(\\d+)', requireAuth, asyncHandler(postController.updateHandler));
 apiRouter.delete('/posts/:id(\\d+)', requireAuth, asyncHandler(postController.deleteHandler));
 apiRouter.post('/posts/:id(\\d+)/accept', requireVerified, asyncHandler(postController.acceptHandler));
 apiRouter.get('/posts/:id(\\d+)/comments', optionalAuth, asyncHandler(commentController.listHandler));
-apiRouter.post('/posts/:id(\\d+)/comments', requireVerified, asyncHandler(commentController.createHandler));
+apiRouter.post('/posts/:id(\\d+)/comments', requireVerified, commentLimit(), asyncHandler(commentController.createHandler));
 apiRouter.delete('/comments/:id(\\d+)', requireAuth, asyncHandler(commentController.deleteHandler));
 
 // ---- 互动 ----
-apiRouter.post('/likes', requireVerified, asyncHandler(interactController.likeHandler));
+apiRouter.post('/likes', requireVerified, likeLimit(), asyncHandler(interactController.likeHandler));
 apiRouter.delete('/likes/:targetType/:targetId(\\d+)', requireVerified, asyncHandler(interactController.unlikeHandler));
-apiRouter.post('/bookmarks', requireVerified, asyncHandler(interactController.bookmarkHandler));
+apiRouter.post('/bookmarks', requireVerified, bookmarkLimit(), asyncHandler(interactController.bookmarkHandler));
 apiRouter.delete('/bookmarks/:postId(\\d+)', requireVerified, asyncHandler(interactController.unbookmarkHandler));
 apiRouter.get('/bookmarks', requireAuth, asyncHandler(interactController.listBookmarksHandler));
 apiRouter.post('/bookmark-folders', requireVerified, asyncHandler(interactController.createFolderHandler));
@@ -62,7 +67,36 @@ apiRouter.put('/draft', requireAuth, asyncHandler(draftController.saveHandler));
 apiRouter.delete('/draft', requireAuth, asyncHandler(draftController.clearHandler));
 
 // ---- 上传 ----
-apiRouter.post('/uploads/image', requireVerified, postImageUpload.single('file'), asyncHandler(uploadImageHandler));
+apiRouter.post('/uploads/image', requireVerified, imageUploadLimit(), postImageUpload.single('file'), asyncHandler(uploadImageHandler));
+
+// ---- 发现：搜索 / 热榜 ----
+apiRouter.get('/search', rateLimit('search-ip', 60, 30), optionalAuth, asyncHandler(discoverController.searchHandler));
+apiRouter.get('/hot', asyncHandler(discoverController.hotHandler));
+
+// ---- 用户主页 ----
+apiRouter.get('/users/me/likes', requireAuth, asyncHandler(profileController.userLikesHandler));
+apiRouter.get('/users/:username', optionalAuth, asyncHandler(profileController.profileHandler));
+apiRouter.get('/users/:username/posts', optionalAuth, asyncHandler(profileController.userPostsHandler));
+apiRouter.get('/users/:username/comments', optionalAuth, asyncHandler(profileController.userCommentsHandler));
+
+// ---- 举报 ----
+apiRouter.get('/reports/reasons', requireAuth, reportController.reasonsHandler);
+apiRouter.post('/reports', requireVerified, reportLimit(), asyncHandler(reportController.createHandler));
+
+// ---- 管理后台 ----
+apiRouter.get('/admin/stats', requireAdmin, asyncHandler(adminController.statsHandler));
+apiRouter.get('/admin/users', requireAdmin, asyncHandler(adminController.listUsersHandler));
+apiRouter.patch('/admin/users/:id(\\d+)', requireAdmin, asyncHandler(adminController.updateUserHandler));
+apiRouter.get('/admin/posts', requireAdmin, asyncHandler(adminController.listPostsHandler));
+apiRouter.post('/admin/posts/:id(\\d+)/action', requireAdmin, asyncHandler(adminController.postActionHandler));
+apiRouter.get('/admin/reports', requireAdmin, asyncHandler(reportController.listHandler));
+apiRouter.post('/admin/reports/:id(\\d+)/handle', requireAdmin, asyncHandler(reportController.handleHandler));
+apiRouter.get('/admin/audit-logs', requireAdmin, asyncHandler(adminController.auditLogsHandler));
+apiRouter.patch('/admin/boards/:id(\\d+)', requireAdmin, asyncHandler(adminController.updateBoardHandler));
+apiRouter.post('/admin/tags', requireAdmin, asyncHandler(adminController.createTagHandler));
+apiRouter.get('/admin/sensitive-words', requireAdmin, asyncHandler(adminController.listWordsHandler));
+apiRouter.post('/admin/sensitive-words', requireAdmin, asyncHandler(adminController.addWordHandler));
+apiRouter.delete('/admin/sensitive-words/:id(\\d+)', requireAdmin, asyncHandler(adminController.removeWordHandler));
 
 // ---- 路由兜底 ----
 apiRouter.use((_req, res) => {

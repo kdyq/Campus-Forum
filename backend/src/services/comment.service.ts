@@ -6,8 +6,10 @@ import type { SafeUser } from '../types/safe-user.ts';
 import { prisma } from '../utils/prisma.ts';
 import { expDelta, EXP_GAIN } from '../utils/level.ts';
 import { notify } from './notification.service.ts';
+import { checkSensitive } from './sensitive.service.ts';
 
 export const COMMENT_MAX = 2000;
+const COMMENT_REVIEW_NOTICE = '评论已提交，将审核通过后展示';
 
 const replyUserSelect = { id: true, username: true, displayName: true, avatarUrl: true } as const;
 
@@ -25,6 +27,7 @@ export interface CommentNode {
   isAnonymous: boolean;
   likeCount: number;
   createdAt: Date;
+  isTop: boolean;
   author: { id: number; username: string; displayName: string; avatarUrl: string | null; level: number; exp: number } | null;
   replyToUser: { id: number; displayName: string } | null;
   deleted: boolean;
@@ -41,6 +44,7 @@ function toNode(row: CommentRow, likedSet: Set<number>): CommentNode {
     isAnonymous: row.isAnonymous,
     likeCount: row.likeCount,
     createdAt: row.createdAt,
+    isTop: row.parentId === null,
     author: deleted || row.isAnonymous
       ? null
       : {
@@ -95,6 +99,8 @@ export async function createComment(postId: number, author: SafeUser, input: Cre
   const content = input.content.trim();
   if (!content) throw new AppError(CODES.PARAM, '评论内容不能为空');
   if (content.length > COMMENT_MAX) throw new AppError(CODES.CONTENT_TOO_LONG, `评论不能超过 ${COMMENT_MAX} 字`);
+  const sensitive = await checkSensitive(content);
+  if (sensitive === 'blocked') throw new AppError(CODES.SENSITIVE, '评论包含不允许发布的词汇');
 
   const post = await prisma.post.findFirst({ where: { id: postId, deletedAt: null } });
   if (!post) throw new AppError(CODES.POST_NOT_FOUND, '帖子不存在或已删除', 404);
@@ -118,7 +124,15 @@ export async function createComment(postId: number, author: SafeUser, input: Cre
 
   const created = await prisma.$transaction(async (tx) => {
     const c = await tx.comment.create({
-      data: { postId, authorId: author.id, parentId, replyToUserId, content, isAnonymous: input.isAnonymous },
+      data: {
+        postId,
+        authorId: author.id,
+        parentId,
+        replyToUserId,
+        content,
+        isAnonymous: input.isAnonymous,
+        status: sensitive === 'review' ? 'PENDING' : 'NORMAL',
+      },
     });
     await tx.post.update({
       where: { id: postId },

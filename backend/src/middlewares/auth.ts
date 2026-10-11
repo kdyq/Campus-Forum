@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { AppError, CODES } from '../constants/codes.ts';
+import { ROLES } from '../constants/enums.ts';
 import { prisma } from '../utils/prisma.ts';
 import { safeUserSelect } from '../types/safe-user.ts';
 import { verifyAccessToken } from '../utils/token.ts';
@@ -58,6 +59,18 @@ export function requireVerified(req: Request, res: Response, next: NextFunction)
     if (user.status === 'MUTED' && user.mutedUntil && user.mutedUntil > new Date()) {
       const until = user.mutedUntil.toLocaleString('zh-CN');
       return next(new AppError(CODES.FORBIDDEN, `账号已被禁言，至 ${until}`, 403));
+    }
+    next();
+  });
+}
+
+/** 管理员守卫：版主及以上 */
+export function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  requireAuth(req, res, (err) => {
+    if (err) return next(err);
+    const role = req.user!.role;
+    if (role !== ROLES.SUPER_ADMIN && role !== ROLES.MODERATOR) {
+      return next(new AppError(CODES.FORBIDDEN, '需要管理员权限', 403));
     }
     next();
   });

@@ -6,6 +6,9 @@ import { prisma } from '../utils/prisma.ts';
 import { safeUserSelect, type SafeUser } from '../types/safe-user.ts';
 import { expDelta, EXP_GAIN } from '../utils/level.ts';
 import { notify } from './notification.service.ts';
+import { checkSensitive } from './sensitive.service.ts';
+
+const SANDBOX_MS = 24 * 3600 * 1000; // 新账号 24h 内发帖先审后显
 
 export const POST_TITLE_MIN = 4;
 export const POST_TITLE_MAX = 80;
@@ -255,8 +258,10 @@ export async function getPostDetail(id: number, viewer: SafeUser | null | undefi
 
   const authorVisible = !post.isAnonymous || canSeeRealAuthor(viewer);
   return {
-    ...toFeedItem(post as never, viewer, Boolean(likes), Boolean(bookmarks)),
+    ...(toFeedItem(post as never, viewer, Boolean(likes), Boolean(bookmarks)) as object),
     content: post.content,
+    editedAt: post.editedAt,
+    editCount: post.editCount,
     courseId: post.courseId,
     course: post.course
       ? { id: post.course.id, name: post.course.name, code: post.course.code, teacher: post.course.teacher, department: post.course.department }
@@ -306,6 +311,13 @@ export async function createPost(author: SafeUser, input: CreatePostInput) {
   if (tags.length !== input.tagIds.length) throw new AppError(CODES.PARAM, '包含不存在的标签');
   if (input.courseId && !course) throw new AppError(CODES.PARAM, '关联的课程不存在');
 
+  const sensitive = await checkSensitive(title, content);
+  if (sensitive === 'blocked') throw new AppError(CODES.SENSITIVE, '内容包含不允许发布的词汇，请修改后再发布');
+
+  // 新账号沙箱：注册 24 小时内发帖进入审核队列；命中 REVIEW 词同样转审核
+  const sandboxed = author.createdAt.getTime() > Date.now() - SANDBOX_MS;
+  const needsReview = sandboxed || sensitive === 'review';
+
   const post = await prisma.$transaction(async (tx) => {
     const created = await tx.post.create({
       data: {
@@ -316,6 +328,7 @@ export async function createPost(author: SafeUser, input: CreatePostInput) {
         excerpt: excerptOf(content),
         isAnonymous: input.isAnonymous,
         courseId: course?.id ?? null,
+        status: needsReview ? POST_STATUS.PENDING : POST_STATUS.NORMAL,
         tags: { createMany: { data: input.tagIds.map((tagId) => ({ tagId })) } },
       },
     });
@@ -326,7 +339,7 @@ export async function createPost(author: SafeUser, input: CreatePostInput) {
     await tx.user.update({ where: { id: author.id }, data: { exp: gain.exp, level: gain.level, lastActiveAt: new Date() } });
     return created;
   });
-  return { id: post.id };
+  return { id: post.id, pending: needsReview, reason: sandboxed ? 'SANDBOX' : 'REVIEW' };
 }
 
 export interface UpdatePostInput {
