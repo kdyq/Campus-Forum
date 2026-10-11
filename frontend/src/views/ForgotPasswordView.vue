@@ -106,7 +106,7 @@ async function submit() {
         </el-form-item>
         <el-form-item label="新密码" prop="password">
           <el-input v-model="form.password" type="password" show-password placeholder="至少 6 位" autocomplete="new-password" />
-          <div class="field-help">密码只能使用英文字母和数字，不能包含空格或符号</div>
+          <div class="field-help">密码只能使用英文字母、数字、@ 和 _</div>
         </el-form-item>
         <el-form-item label="确认新密码" prop="confirmPassword">
           <el-input v-model="form.confirmPassword" type="password" show-password placeholder="再次输入新密码" autocomplete="new-password" @keyup.enter="submit" />

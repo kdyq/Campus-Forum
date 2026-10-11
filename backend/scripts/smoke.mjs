@@ -73,7 +73,12 @@ async function main() {
     method: 'POST',
     body: { username: `smoke${stamp}`, displayName: '测试', email: `a${stamp}@stu.campus.edu.cn`, password: 'a b!456' },
   });
-  check('含符号密码被拒(20003)', badPwd.body?.code === 20003, JSON.stringify(badPwd.body));
+  check('含非法符号密码被拒(20003)', badPwd.body?.code === 20003, JSON.stringify(badPwd.body));
+  const underscoreName = await call('/auth/register', {
+    method: 'POST',
+    body: { username: `smoke_${stamp}`, displayName: '测试', email: `u${stamp}@stu.campus.edu.cn`, password: 'smoke@123' },
+  });
+  check('用户名含下划线被拒(20002)', underscoreName.body?.code === 20002, JSON.stringify(underscoreName.body));
 
   // ---- 邮箱白名单（验收：非白名单被拒并提示邀请码） ----
   const noInvite = await call('/auth/register', {
@@ -99,6 +104,8 @@ async function main() {
   check('新用户 token 可访问 /me', me2.body?.data?.username === `smoke${stamp}`);
 
   // ---- 邀请码注册流程 ----
+  // 本脚本的多个校验用例已用掉注册限流额度（5/小时/IP），此处清桶以免脚本自我触发限流
+  for (const key of await redis.keys('rl:register-ip:*')) await redis.del(key);
   const email2 = `smoke2${stamp}@qq.com`;
   await call('/auth/email/code', { method: 'POST', body: { email: email2, scene: 'REGISTER' } });
   const reg2 = await call('/auth/register', {
@@ -107,7 +114,7 @@ async function main() {
       username: `smokeb${stamp}`.slice(0, 20),
       displayName: '邀请码用户',
       email: email2,
-      password: 'smoke123456',
+      password: 'smoke@123456', // 新规则下 @ 为合法密码字符
       inviteCode: 'CAMPUS2026',
     },
   });

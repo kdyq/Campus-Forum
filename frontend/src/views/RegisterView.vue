@@ -44,7 +44,7 @@ const rules: FormRules = {
   confirmPassword: [{ required: true, validator: confirmPasswordValidator, trigger: 'blur' }],
 } satisfies FormRules;
 
-const usernameHelp = '5-20 位，仅英文字母、数字、@ 和 _，注册后不可修改';
+const usernameHelp = '5-20 位，仅英文字母和数字，注册后不可修改';
 const isEdu = computed(() => isEduEmail(form.email));
 const inviteHelp = computed(() =>
   form.email && !isEdu.value ? '检测到非校园邮箱，注册需要有效的邀请码' : '没有校园邮箱？可在此填写邀请码',
