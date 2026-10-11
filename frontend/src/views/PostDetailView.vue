@@ -277,8 +277,10 @@ onMounted(load);
       </section>
       <section v-if="post?.course" class="panel">
         <h3 class="panel-title">关联课程</h3>
-        <p class="course-name">{{ post.course.name }}</p>
-        <p class="course-meta tw-meta">{{ post.course.code }} · {{ post.course.department }}{{ post.course.teacher ? ` · ${post.course.teacher}` : '' }}</p>
+        <RouterLink :to="{ name: 'course', params: { code: post.course.code } }" class="course-link">
+          <p class="course-name">{{ post.course.name }}</p>
+          <p class="course-meta tw-meta">{{ post.course.code }} · {{ post.course.department }}{{ post.course.teacher ? ` · ${post.course.teacher}` : '' }}</p>
+        </RouterLink>
       </section>
       <section class="panel">
         <h3 class="panel-title">板块说明</h3>
@@ -521,6 +523,14 @@ onMounted(load);
   margin: 0;
   font-weight: 600;
   color: var(--tw-ink);
+}
+
+a.course-link {
+  display: block;
+}
+
+a.course-link:hover .course-name {
+  color: var(--tw-accent-ink);
 }
 
 .course-meta {

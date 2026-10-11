@@ -7,6 +7,8 @@ import 'md-editor-v3/lib/style.css';
 import BoardTree from '@/components/BoardTree.vue';
 import { createPost, fetchBoards, fetchDraft, fetchPost, fetchTags, saveDraft, updatePost, uploadImage, clearDraft, deletePost } from '@/api/content';
 import { api } from '@/api/client';
+import { fetchCourses } from '@/api/course';
+import type { CourseItem } from '@/api/course';
 import { useSessionStore } from '@/stores/session';
 import { timeAgo } from '@/utils/format';
 import type { BoardItem, TagItem } from '@/types/content';
@@ -20,6 +22,7 @@ const isEdit = computed(() => editId.value !== null);
 
 const boards = ref<BoardItem[]>([]);
 const tags = ref<TagItem[]>([]);
+const courses = ref<CourseItem[]>([]);
 const draftUpdatedAt = ref<string | null>(null);
 const submitting = ref(false);
 const savingDraft = ref(false);
@@ -31,6 +34,7 @@ const form = reactive({
   content: '',
   isAnonymous: false,
   tagIds: [] as number[],
+  courseId: null as number | null,
 });
 
 // 投票（可选）：发布时随帖子创建
@@ -46,9 +50,15 @@ const titleHelp = computed(() => `${form.title.length}/80`);
 async function load(): Promise<void> {
   loading.value = true;
   try {
-    const [bs, ts] = await Promise.all([fetchBoards(), fetchTags()]);
+    const [bs, ts, cs] = await Promise.all([fetchBoards(), fetchTags(), fetchCourses()]);
     boards.value = bs;
     tags.value = ts;
+    courses.value = cs;
+    // 从课程主页一键发帖：URL 带 courseId 自动关联（验收项）
+    const queryCourseId = Number(route.query.courseId);
+    if (!isEdit.value && Number.isFinite(queryCourseId) && queryCourseId > 0) {
+      form.courseId = queryCourseId;
+    }
     if (isEdit.value) {
       const post = await fetchPost(editId.value!);
       if (!post.authorSafe || post.authorSafe.id !== session.user?.id) {
@@ -61,6 +71,7 @@ async function load(): Promise<void> {
       form.content = post.content;
       form.isAnonymous = post.isAnonymous;
       form.tagIds = post.tags.map((t) => t.id);
+      form.courseId = post.courseId;
     } else {
       const draft = await fetchDraft();
       if (draft?.title || draft?.content) {
@@ -133,6 +144,7 @@ async function submit() {
         content: form.content,
         isAnonymous: form.isAnonymous,
         tagIds: form.tagIds,
+        courseId: form.courseId,
       });
       ElMessage.success(result.revisionSaved ? '已保存（本次编辑已记入编辑历史）' : '保存成功');
       router.replace({ name: 'post-detail', params: { id: editId.value! } });
@@ -143,6 +155,7 @@ async function submit() {
         content: form.content,
         isAnonymous: form.isAnonymous,
         tagIds: form.tagIds,
+        courseId: form.courseId,
       });
       if (pollEnabled.value && poll.question.trim()) {
         const options = poll.options.map((o) => o.trim()).filter(Boolean);
@@ -241,6 +254,12 @@ void load();
             style="width: 100%"
           >
             <el-option v-for="t in tags" :key="t.id" :label="t.name" :value="t.id" />
+          </el-select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="course-select">关联课程（选填）</label>
+          <el-select id="course-select" v-model="form.courseId" placeholder="选择课程，帖子将出现在课程主页" clearable filterable style="width: 100%">
+            <el-option v-for="c in courses" :key="c.id" :label="`${c.name}（${c.code}）`" :value="c.id" />
           </el-select>
         </div>
         <div class="field field-row">

@@ -14,6 +14,7 @@ import * as profileController from '../controllers/profile.controller.ts';
 import * as reportController from '../controllers/report.controller.ts';
 import * as adminController from '../controllers/admin.controller.ts';
 import * as socialController from '../controllers/social.controller.ts';
+import * as courseController from '../controllers/course.controller.ts';
 import { requireAuth, requireVerified, requireAdmin, optionalAuth } from '../middlewares/auth.ts';
 import { rateLimit } from '../middlewares/rateLimit.ts';
 import { postLimit, commentLimit, likeLimit, bookmarkLimit, reportLimit, imageUploadLimit } from '../middlewares/contentLimit.ts';
@@ -115,6 +116,11 @@ apiRouter.get('/feed/following', requireAuth, asyncHandler(socialController.foll
 apiRouter.post('/posts/:id(\\d+)/poll', requireVerified, asyncHandler(socialController.createPollHandler));
 apiRouter.get('/posts/:id(\\d+)/poll', optionalAuth, asyncHandler(socialController.getPollHandler));
 apiRouter.post('/polls/:pollId(\\d+)/vote', requireVerified, asyncHandler(socialController.voteHandler));
+
+// ---- 课程库 ----
+apiRouter.get('/courses', asyncHandler(courseController.listHandler));
+apiRouter.get('/courses/:code', optionalAuth, asyncHandler(courseController.detailHandler));
+apiRouter.post('/courses/:id(\\d+)/review', requireVerified, asyncHandler(courseController.submitReviewHandler));
 
 // ---- 路由兜底 ----
 apiRouter.use((_req, res) => {

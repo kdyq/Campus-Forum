@@ -408,6 +408,49 @@ async function main() {
   const markRead = await call('/notifications/read', { method: 'POST', token: smokeToken, body: { all: true } });
   check('批量已读后未读清零', markRead.body?.code === 0 && markRead.body?.data?.count === 0, JSON.stringify(markRead.body));
 
+  // ========== 第 5 步：课程库 ==========
+  const courseList = await call('/courses');
+  check('课程列表返回 3 门课', (courseList.body?.data ?? []).length === 3, JSON.stringify(courseList.body?.data?.length));
+  const mlCourse = (courseList.body?.data ?? []).find((c) => c.code === 'CS3012');
+  check('课程列表含机器学习', Boolean(mlCourse));
+  if (mlCourse) {
+    const coursePost = await call('/posts', {
+      method: 'POST',
+      token: adminToken,
+      body: {
+        boardId: boardList.find((b) => b.slug === 'course').id,
+        title: '机器学习选课答疑专场',
+        content: '关于 CS3012 的任何问题都在这里回答',
+        isAnonymous: false,
+        tagIds: [],
+        courseId: mlCourse.id,
+      },
+    });
+    check('关联课程发帖成功', coursePost.body?.code === 0 && coursePost.body?.data?.pending === false, JSON.stringify(coursePost.body));
+
+    const courseDetail = await call('/courses/CS3012');
+    check(
+      '课程主页聚合该课讨论',
+      (courseDetail.body?.data?.discussions ?? []).some((d) => d.title.includes('机器学习')),
+      JSON.stringify(courseDetail.body?.data?.discussions?.slice(0, 2)),
+    );
+
+    const rev = await call(`/courses/${mlCourse.id}/review`, {
+      method: 'POST',
+      token: smokeToken,
+      body: { rating: 4, workload: 3, attendance: 2, recommend: 5, content: '值得选', isAnonymous: true },
+    });
+    check('评分提交成功并更新聚合', rev.body?.code === 0 && rev.body?.data?.ratingCount >= 1 && rev.body?.data?.ratingScore !== null, JSON.stringify(rev.body));
+    const revAgain = await call(`/courses/${mlCourse.id}/review`, {
+      method: 'POST',
+      token: smokeToken,
+      body: { rating: 5, workload: 2, attendance: 1, recommend: 4, isAnonymous: false },
+    });
+    check('重复评分走更新且计数不变', revAgain.body?.data?.ratingCount === rev.body?.data?.ratingCount && revAgain.body?.data?.ratingScore === 5, JSON.stringify(revAgain.body));
+    const cd2 = await call('/courses/CS3012', { token: smokeToken });
+    check('课程详情返回我的评分', cd2.body?.data?.myReview?.rating === 5);
+  }
+
   console.log(`\n结果：${passed} 通过，${failed} 失败`);
   process.exitCode = failed > 0 ? 1 : 0;
 }

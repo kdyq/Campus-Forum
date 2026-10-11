@@ -14,6 +14,7 @@ const router = createRouter({
     { path: '/tags', name: 'tags', component: () => import('@/views/TagsView.vue') },
     { path: '/tags/:slug', name: 'tag', component: () => import('@/views/TagView.vue') },
     { path: '/notifications', name: 'notifications', component: () => import('@/views/NotificationsView.vue'), meta: { requiresAuth: true } },
+    { path: '/c/:code', name: 'course', component: () => import('@/views/CourseView.vue') },
     { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { guestOnly: true } },
     { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue'), meta: { guestOnly: true } },
     { path: '/verify-email', name: 'verify-email', component: () => import('@/views/VerifyEmailView.vue') },
