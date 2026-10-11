@@ -29,3 +29,36 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
     next(new AppError(CODES.UNAUTHORIZED, '登录已过期', 401));
   }
 }
+
+/** 可选登录：有合法 token 就挂上用户，匿名请求照常放行 */
+export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const token = bearerToken(req);
+  if (!token) return next();
+  try {
+    const claims = await verifyAccessToken(token);
+    const user = await prisma.user.findUnique({
+      where: { id: Number(claims.sub) },
+      select: safeUserSelect,
+    });
+    if (user && user.status !== 'BANNED') req.user = user;
+    next();
+  } catch {
+    next(); // 无效 token 按匿名处理
+  }
+}
+
+/** 内容创作守卫：先鉴权，再要求邮箱已验证且未被禁言 */
+export function requireVerified(req: Request, res: Response, next: NextFunction) {
+  requireAuth(req, res, (err) => {
+    if (err) return next(err);
+    const user = req.user!;
+    if (!user.emailVerified) {
+      return next(new AppError(CODES.FORBIDDEN, '请先完成邮箱验证再来发帖与评论', 403));
+    }
+    if (user.status === 'MUTED' && user.mutedUntil && user.mutedUntil > new Date()) {
+      const until = user.mutedUntil.toLocaleString('zh-CN');
+      return next(new AppError(CODES.FORBIDDEN, `账号已被禁言，至 ${until}`, 403));
+    }
+    next();
+  });
+}

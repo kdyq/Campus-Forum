@@ -3,6 +3,7 @@ import { createApp } from './app.ts';
 import { logger } from './utils/logger.ts';
 import { ensureRedis } from './utils/redis.ts';
 import { ensureFulltextIndex } from './utils/db.ts';
+import { startJobs } from './jobs/index.ts';
 
 const app = createApp();
 
@@ -18,3 +19,5 @@ try {
 app.listen(env.port, () => {
   logger.info(`同窗 API 已启动: http://localhost:${env.port} (${env.nodeEnv})`);
 });
+
+startJobs();
