@@ -12,8 +12,7 @@
     "start": "node src/server.ts",
     "typecheck": "tsc --noEmit",
     "migrate": "prisma migrate dev",
-    "seed": "node prisma/seed.ts",
-    "smoke": "node scripts/smoke.mjs"
+    "seed": "node prisma/seed.ts"
   },
   "prisma": {
     "seed": "node prisma/seed.ts"

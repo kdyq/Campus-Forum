@@ -1,4 +1,4 @@
-// 校验规则（开发文档 §1.1 硬性约束，2026-10-11 确认；服务端仍会重复校验）
+// 校验规则（项目规范 §1.1 硬性约束，2026-10-11 确认；服务端仍会重复校验）
 export const USERNAME_RE = /^[A-Za-z0-9]{5,20}$/;
 export const PASSWORD_RE = /^[A-Za-z0-9@_]{6,32}$/;
 export const DISPLAY_NAME_RE = /^[\u4e00-\u9fa5A-Za-z0-9·\-_]{1,20}$/;

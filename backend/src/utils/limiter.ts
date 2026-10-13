@@ -1,4 +1,4 @@
-// 基于 Redis ZSET 的滑动窗口限流（开发文档 §4.4 的令牌桶思路的等价实现）
+// 基于 Redis ZSET 的滑动窗口限流（项目规范 §4.4 的令牌桶思路的等价实现）
 import { redis } from './redis.ts';
 
 export interface LimitResult {

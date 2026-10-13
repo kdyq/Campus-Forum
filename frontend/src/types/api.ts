@@ -1,4 +1,4 @@
-// 与后端约定的响应包络与共享类型（开发文档 §4.1）
+// 与后端约定的响应包络与共享类型（项目规范 §4.1）
 export interface ApiResponse<T> {
   code: number;
   message: string;

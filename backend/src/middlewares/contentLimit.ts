@@ -1,4 +1,4 @@
-// 内容频率限制（开发文档 §4.4）：按账号维度区分新账号沙箱期与普通用户
+// 内容频率限制（项目规范 §4.4）：按账号维度区分新账号沙箱期与普通用户
 import type { NextFunction, Request, Response } from 'express';
 import { AppError, CODES } from '../constants/codes.ts';
 import { ROLES } from '../constants/enums.ts';

@@ -1,4 +1,4 @@
-// 校验规则（开发文档 §1.1 硬性约束，2026-10-11 确认；§1.4 已同步。前端在 frontend/src/utils/validators.ts 保持同源副本）
+// 校验规则（项目规范 §1.1 硬性约束，2026-10-11 确认；§1.4 已同步。前端在 frontend/src/utils/validators.ts 保持同源副本）
 import { AppError, CODES } from './codes.ts';
 
 export const USERNAME_RE = /^[A-Za-z0-9]{5,20}$/;

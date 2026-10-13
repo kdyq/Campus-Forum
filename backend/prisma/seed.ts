@@ -1,5 +1,5 @@
 /**
- * 种子数据（开发文档 §3.4）：内容与设计稿保持一致，README 截图可直接对照。
+ * 种子数据（项目规范 §3.4）：内容与设计稿保持一致，README 截图可直接对照。
  * 包含：超管 guo（种子直建，弱密码 123456 仅限开发环境，上线前必须替换）、
  * 7 个板块、12 个标签、3 门课程、2 个邀请码、8 位演示用户、
  * 9 条演示帖子（置顶 1、已解决 1、精华 1、匿名 1、带图 2）与部分评论互动。
@@ -22,7 +22,7 @@ async function wipe(): Promise<void> {
   for (const table of [
     'View', 'Like', 'PostTag', 'TagSynonym', 'Comment', 'PostRevision', 'Bookmark', 'BookmarkFolder',
     'Follow', 'Notification', 'Report', 'Draft', 'CourseReview', 'AuditLog', 'Announcement',
-    'SensitiveWord', '_BoardModerators', 'Post', 'Course', 'Tag', 'Board', 'InviteCode', 'User',
+    'SensitiveWord', 'PollVote', 'Poll', '_BoardModerators', 'Post', 'Course', 'Tag', 'Board', 'InviteCode', 'User',
   ]) {
     await prisma.$executeRawUnsafe(`DELETE FROM \`${table}\``);
   }
@@ -139,15 +139,15 @@ async function main(): Promise<void> {
     userIndex++;
   }
 
-  // ---- 种子图片（来自设计稿资产，落盘到 backend/uploads/seed 供帖子引用） ----
+  // ---- 种子图片（仓库内置示例图，落盘到 backend/uploads/seed 供帖子引用） ----
   const seedImgDir = path.resolve(import.meta.dirname, '../uploads/seed');
-  const designImgDir = path.resolve(import.meta.dirname, '../../design/assets/img');
+  const assetImgDir = path.resolve(import.meta.dirname, '../assets/seed');
   mkdirSync(seedImgDir, { recursive: true });
   for (const img of ['ml-lecture-hall.jpg', 'library-stacks.jpg']) {
     try {
-      copyFileSync(path.join(designImgDir, img), path.join(seedImgDir, img));
+      copyFileSync(path.join(assetImgDir, img), path.join(seedImgDir, img));
     } catch {
-      console.warn(`跳过种子图片 ${img}（设计稿资产缺失）`);
+      console.warn(`跳过种子图片 ${img}（示例图资产缺失）`);
     }
   }
 
