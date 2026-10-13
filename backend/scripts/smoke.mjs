@@ -1,7 +1,10 @@
 /**
- * 冒烟测试：覆盖第 1-3 步验收核心链路。
+ * 冒烟测试：覆盖第 1-5 步验收核心链路。
  * 前置：后端已启动（node src/server.ts）、Redis 已运行、已执行迁移与种子。
  * 运行：npm run smoke
+ *
+ * 注意：本脚本会触发若干次「发送验证码」调用。若 backend/.env 中 TEST_MODE=0（真实发信），
+ * 每次运行会真实发送约 3 封邮件；建议跑冒烟前把 TEST_MODE 改为 1（验证码只写 Redis，零邮件）。
  */
 import Redis from 'ioredis';
 

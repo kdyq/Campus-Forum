@@ -41,7 +41,12 @@ npm install
 npm run dev              # http://localhost:5173（/api、/uploads、/socket.io 代理到 3100）
 ```
 
-**邮件服务保护**：`backend/.env` 中 `TEST_MODE=1` 时验证码只写入 Redis、不实发邮件（自动化测试与日常开发用，避免频繁调用 QQ SMTP 触发封禁）。真实联调邮件时改为 `TEST_MODE=0`。生产环境必须为 `0`。
+**邮件服务开关**：`backend/.env` 中的 `TEST_MODE` 控制验证码是否真实发送——
+
+- `TEST_MODE=1`：验证码只写入 Redis、不实发邮件，控制台打印验证码。跑 `npm run smoke` 与自动化测试时用它（零邮件，防 QQ 邮箱封禁）。
+- `TEST_MODE=0`：真实发送验证码邮件（人工注册联调、真实使用时）。
+
+改完开关需重启后端生效。SMTP 通道可用性可用 `node --experimental-strip-types scripts/verify-smtp.mjs` 验证（只做连接与鉴权，不发任何邮件）。生产环境必须为 `0`。
 
 ## 种子账号与测试
 
